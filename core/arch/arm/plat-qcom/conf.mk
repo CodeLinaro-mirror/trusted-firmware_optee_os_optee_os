@@ -1,28 +1,24 @@
-include core/arch/arm/cpu/cortex-armv8-0.mk
+# Default to ipq96xx premium flavor if no specific platform is provided
+PLATFORM_FLAVOR ?= ipq96xx
 
-$(call force,CFG_TEE_CORE_NB_CORE,4)
+# Include common QCOM platform settings
+include core/arch/arm/plat-qcom/common.mk
 
-CFG_TZDRAM_START ?= 0x8a680000
-CFG_TZDRAM_SIZE ?= 0x280000
-CFG_TEE_RAM_VA_SIZE ?= 0x280000
+# Set SoC-specific flags based on platform flavor
+ipq5200-lm-flavorlist = ipq5200_lm
+ipq5200-premium-flavorlist = ipq5200_premium ipq5200
+ipq5200-flavorlist = $(ipq5200-lm-flavorlist) $(ipq5200-premium-flavorlist)
 
-$(call force,CFG_ARM64_core,y)
-$(call force,CFG_SECURE_TIME_SOURCE_CNTPCT,y)
-$(call force,CFG_WITH_ARM_TRUSTED_FW,y)
+ipq96xx-lm-flavorlist = ipq96xx_lm
+ipq96xx-premium-flavorlist = ipq96xx_premium ipq96xx
+ipq96xx-flavorlist = $(ipq96xx-lm-flavorlist) $(ipq96xx-premium-flavorlist)
 
-CFG_NUM_THREADS ?= CFG_TEE_CORE_NB_CORE
-CFG_CRYPTO_WITH_CE ?= n
+ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq5200-flavorlist)))
+$(call force,CFG_IPQ5200,y)
+include core/arch/arm/plat-qcom/ipq5200.mk
+endif
 
-CFG_TEE_CORE_EMBED_INTERNAL_TESTS ?= n
-CFG_WITH_STACK_CANARIES ?= n
-CFG_WITH_STATS ?= n
-CFG_CORE_RESERVED_SHM ?= n
-
-CFG_TA_ASLR ?= n
-CFG_CORE_ASLR ?= n
-
-$(call force,CFG_CRYPTO_SHA256_ARM32_CE,n)
-$(call force,CFG_CRYPTO_SHA256_ARM64_CE,n)
-$(call force,CFG_CRYPTO_SHA1_ARM32_CE,n)
-$(call force,CFG_CRYPTO_SHA1_ARM64_CE,n)
-$(call force,CFG_CRYPTO_AES_ARM64_CE,n)
+ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq96xx-flavorlist)))
+$(call force,CFG_IPQ96XX,y)
+include core/arch/arm/plat-qcom/ipq96xx.mk
+endif
