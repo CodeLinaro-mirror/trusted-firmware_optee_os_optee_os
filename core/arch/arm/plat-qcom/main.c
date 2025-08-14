@@ -37,9 +37,8 @@ register_phys_mem_pgdir(MEM_AREA_IO_SEC, GICR_BASE, GIC_CPU_REG_SIZE);
  * For asymmetric clusters:
  * - The same formula works as long as CFG_CORE_CLUSTER_SHIFT is set to
  *   accommodate the largest cluster size
- * - Example with CFG_CORE_CLUSTER_SHIFT=2 for ipq96xx (4+1 cores):
- *   - Cluster 0 (4 cores): Positions 0-3
- *   - Cluster 1 (1 core): Position 4
+ * - Example with CFG_CORE_CLUSTER_SHIFT=3 for ipq96xx (5 cores in single cluster):
+ *   - Cluster 0, Cores 0-4: Positions 0-4
  *
  * MPIDR layout:
  * - AFF2[23:16]: Cluster ID
