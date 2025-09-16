@@ -1,14 +1,5 @@
 # Common QCOM platform settings applied to all QCOM flavors
 
-# Key features:
-# - Enables ARM64 core and ARM Trusted Firmware
-# - Uses CNTPCT as secure time source
-# - Disables ASLR for both core and TA to save memory
-# - Disables PAGER for simplified memory management and reducing boot complexity
-# - Configures shared memory settings for optimal performance
-# - Disables AArch32-related configs by default (though ARM32 is supported, ARM64 is the default)
-# - Disables PSCI support as it's handled by ATF
-
 # QCOM platforms default to ARM64, but can support ARM32 as well
 supported-ta-targets ?= ta_arm64
 
