@@ -92,6 +92,7 @@ srcs-$(CFG_WIDEVINE_HUK) += widevine_huk.c
 srcs-$(CFG_SEMIHOSTING_CONSOLE) += semihosting_console.c
 srcs-$(CFG_FFA_CONSOLE) += ffa_console.c
 srcs-$(CFG_OPENEDGES_OMC) += openedges_omc.c
+srcs-$(CFG_QCOM_DIAG_LOG) += qcom_diag_log.c
 
 subdirs-y += crypto
 subdirs-$(CFG_BNXT_FW) += bnxt

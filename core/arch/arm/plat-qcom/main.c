@@ -9,11 +9,28 @@
 #include <kernel/misc.h>
 #include <mm/core_memprot.h>
 #include <platform_config.h>
+#include <drivers/qcom_diag_log.h>
+#include <trace.h>
 #include <stdint.h>
 
 #ifdef CFG_ARM_GICV3
 register_phys_mem(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
 #endif
+
+#ifdef CFG_QCOM_DIAG_LOG
+register_phys_mem(MEM_AREA_IO_SEC, DIAG_BASE, DIAG_SIZE);
+register_phys_mem(MEM_AREA_IO_SEC, DIAG_LOG_START_INFO & ~SMALL_PAGE_MASK,
+		  SMALL_PAGE_SIZE);
+register_phys_mem(MEM_AREA_IO_SEC, TCSR_BOOT_MISC_DETECT & ~SMALL_PAGE_MASK,
+		  SMALL_PAGE_SIZE);
+#endif
+
+void plat_trace_ext_puts(const char *str __maybe_unused)
+{
+#ifdef CFG_QCOM_DIAG_LOG
+	qcom_diag_log_puts(str);
+#endif
+}
 
 /**
  * get_core_pos_mpidr() - Get core position from MPIDR
