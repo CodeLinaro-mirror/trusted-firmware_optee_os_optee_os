@@ -10,15 +10,16 @@ CFG_CORE_HEAP_SIZE ?= 0x8000
 # Basic crypto configuration
 CFG_WITH_SOFTWARE_PRNG ?= y
 CFG_CRYPTO ?= y
+# SW RNG requires AES ECB SHA256
 CFG_CRYPTO_AES ?= y
-CFG_CRYPTO_GCM ?= y
+CFG_CRYPTO_ECB ?= y
 CFG_CRYPTO_SHA256 ?= y
 
 # Disable unnecessary crypto algorithms
 CFG_CRYPTO_DES ?= n
 CFG_CRYPTO_SM4 ?= n
-CFG_CRYPTO_ECB ?= n
 CFG_CRYPTO_CBC ?= n
+CFG_CRYPTO_GCM ?= n
 CFG_CRYPTO_CTR ?= n
 CFG_CRYPTO_CTS ?= n
 CFG_CRYPTO_XTS ?= n
