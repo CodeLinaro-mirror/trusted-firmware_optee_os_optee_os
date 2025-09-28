@@ -20,6 +20,11 @@
 #define GICR_BASE		(GIC_BASE + GICR_OFFSET)
 #endif
 
+#if defined(CFG_QCOM_GENI_UART)
+#define QUP_UART_BASE          CFG_QCOM_QUP_UART_BASE
+#define QUP_UART_REG_SIZE      CFG_QCOM_QUP_UART_SIZE
+#endif
+
 #if defined(CFG_QCOM_DIAG_LOG)
 #define DIAG_BASE		CFG_QCOM_DIAG_BASE
 #define DIAG_SIZE		CFG_QCOM_DIAG_SIZE
