@@ -12,6 +12,7 @@
 #include <console.h>
 #include <tee_api_types.h>
 #include <trace.h>
+#include <initcall.h>
 
 #ifdef CFG_QCOM_GENI_UART
 static struct qcom_geni_uart_data console_data;
@@ -53,6 +54,18 @@ void plat_console_init(void)
 	}
 #endif
 }
+
+#ifdef CFG_QCOM_GENI_UART
+static TEE_Result plat_console_deinit(void)
+{
+	register_serial_console(NULL);
+	IMSG("QCOM GENI UART: Console deinitialization successful");
+
+	return TEE_SUCCESS;
+}
+
+boot_final(plat_console_deinit);
+#endif
 
 /**
  * get_core_pos_mpidr() - Get core position from MPIDR
