@@ -1,6 +1,3 @@
-# IPQ96xx Platform-Specific Configuration
-
-# IPQ96xx-specific settings (both profiles)
 ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq96xx-flavorlist)))
 
 CFG_IPQ96XX ?= y
@@ -14,7 +11,13 @@ CFG_CORE_CLUSTER_SHIFT ?= 3
 # IPQ96xx-specific memory layout
 CFG_TZDRAM_START ?= 0x8A680000
 
-# IPQ96xx GIC configuration (GICv3)
+# DDR memory configuration
+CFG_DRAM0_BASE ?= 0x80000000
+CFG_DRAM0_SIZE ?= 0x80000000
+CFG_DRAM1_BASE ?= 0x800000000
+CFG_DRAM1_SIZE ?= 0x380000000
+
+# GICv3
 CFG_GIC ?= y
 CFG_ARM_GICV3 ?= y
 

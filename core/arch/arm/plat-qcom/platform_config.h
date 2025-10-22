@@ -33,4 +33,15 @@
 #define TCSR_BOOT_MISC_DETECT	CFG_QCOM_TCSR_BOOT_MISC_DETECT
 #endif
 
+/* DDR memory configuration */
+#ifdef CFG_DRAM0_BASE
+#define DRAM0_BASE		CFG_DRAM0_BASE
+#define DRAM0_SIZE		CFG_DRAM0_SIZE
+#endif
+
+#ifdef CFG_DRAM1_BASE
+#define DRAM1_BASE		CFG_DRAM1_BASE
+#define DRAM1_SIZE		CFG_DRAM1_SIZE
+#endif
+
 #endif /* PLATFORM_CONFIG_H */

@@ -19,19 +19,29 @@ static struct qcom_geni_uart_data console_data;
 #endif
 
 #ifdef CFG_ARM_GICV3
-register_phys_mem(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
 #endif
 
 #ifdef CFG_QCOM_DIAG_LOG
-register_phys_mem(MEM_AREA_IO_SEC, DIAG_BASE, DIAG_SIZE);
-register_phys_mem(MEM_AREA_IO_SEC, DIAG_LOG_START_INFO & ~SMALL_PAGE_MASK,
-		  SMALL_PAGE_SIZE);
-register_phys_mem(MEM_AREA_IO_SEC, TCSR_BOOT_MISC_DETECT & ~SMALL_PAGE_MASK,
-		  SMALL_PAGE_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, DIAG_BASE, DIAG_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC,
+			(DIAG_LOG_START_INFO & ~SMALL_PAGE_MASK),
+			SMALL_PAGE_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC,
+			(TCSR_BOOT_MISC_DETECT & ~SMALL_PAGE_MASK),
+			SMALL_PAGE_SIZE);
 #endif
 
 #ifdef CFG_QCOM_GENI_UART
 register_phys_mem_pgdir(MEM_AREA_IO_NSEC, QUP_UART_BASE, QUP_UART_REG_SIZE);
+#endif
+
+#ifdef DRAM0_BASE
+register_ddr(DRAM0_BASE, DRAM0_SIZE);
+#endif
+
+#ifdef DRAM1_BASE
+register_ddr(DRAM1_BASE, DRAM1_SIZE);
 #endif
 
 void plat_trace_ext_puts(const char *str __maybe_unused)

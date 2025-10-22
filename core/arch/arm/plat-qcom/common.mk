@@ -19,3 +19,6 @@ CFG_ARM32_ta_arm64 ?= n
 CFG_TA_ARM32_SUPPORT ?= n
 CFG_PSCI_ARM32 ?= n
 CFG_PSCI_ARM64 ?= n
+
+# 36-bit PA width to support platforms with memory beyond 4GB
+CFG_CORE_ARM64_PA_BITS ?= 36
