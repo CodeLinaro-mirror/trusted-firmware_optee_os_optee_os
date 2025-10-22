@@ -2,8 +2,8 @@
 /*
  * Copyright (c) 2016-2017, 2023-2024 Linaro Limited
  * Copyright (c) 2014, STMicroelectronics International N.V.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
-
 #include <arm.h>
 #include <assert.h>
 #include <compiler.h>
@@ -52,8 +52,15 @@
 #ifdef CFG_ARM_GICV3
 #define GICD_PIDR2		(0xFFE8)
 #else
+/*
+ * The ARM GICv2 specification defines PIDR2 at offset 0xFE8, but some
+ * hardware implementations place this register at a different offset.
+ * Therefore, allow platforms to override PIDR2 offset in GICv2.
+ */
+#ifndef GICD_PIDR2
 /* Called ICPIDR2 in GICv2 specification */
 #define GICD_PIDR2		(0xFE8)
+#endif
 #endif
 
 #define GICD_CTLR_ENABLEGRP0	BIT32(0)

@@ -14,8 +14,8 @@ IPQ_CHIPSETS := ipq5200 ipq96xx
 
 # Validate chipset definitions
 $(foreach chip,$(IPQ_CHIPSETS),\
-  $(if $(wildcard core/arch/arm/plat-qcom/ipq/$(chip).mk),,\
-    $(error Missing implementation file for chipset $(chip): core/arch/arm/plat-qcom/ipq/$(chip).mk)) \
+  $(if $(wildcard core/arch/arm/plat-qcom/ipq/$(chip)/$(chip).mk),,\
+    $(error Missing implementation file for chipset $(chip): core/arch/arm/plat-qcom/ipq/$(chip)/$(chip).mk)) \
   $(if $(filter $(chip),$(filter-out $(chip),$(IPQ_CHIPSETS))),\
     $(error Duplicate chipset in IPQ_CHIPSETS: $(chip))) \
   $(if $(filter ipq%,$(chip)),,\
@@ -43,7 +43,8 @@ endif
 $(foreach chip,$(IPQ_CHIPSETS),\
   $(if $(filter $(PLATFORM_FLAVOR),$($(chip)-flavorlist)),\
     $(eval CFG_$(shell echo $(chip) | tr a-z A-Z) ?= y) \
-    $(eval include core/arch/arm/plat-qcom/ipq/$(chip).mk)))
+    $(eval IPQ_CHIPSET := $(chip)) \
+    $(eval include core/arch/arm/plat-qcom/ipq/$(chip)/$(chip).mk)))
 
 # Include appropriate profile based on PLATFORM_FLAVOR
 ifneq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
