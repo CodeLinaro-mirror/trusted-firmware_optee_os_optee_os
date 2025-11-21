@@ -53,12 +53,18 @@ void plat_trace_ext_puts(const char *str __maybe_unused)
 
 void plat_console_init(void)
 {
+	TEE_Result res __maybe_unused = TEE_SUCCESS;
+
+#ifdef CFG_QCOM_DIAG_LOG
+	qcom_diag_log_init();
+#endif
+
 #ifdef CFG_QCOM_GENI_UART
-	TEE_Result res = qcom_geni_uart_init(&console_data);
+	res = qcom_geni_uart_init(&console_data);
 
 	if (res == TEE_SUCCESS) {
 		register_serial_console(&console_data.chip);
-		IMSG("QCOM GENI UART: Console initialization successful");
+		IMSG("QCOM GENI UART: Console initialized");
 	} else {
 		EMSG("QCOM GENI UART: Console init failed (0x%x)", res);
 	}
@@ -69,7 +75,7 @@ void plat_console_init(void)
 static TEE_Result plat_console_deinit(void)
 {
 	register_serial_console(NULL);
-	IMSG("QCOM GENI UART: Console deinitialization successful");
+	IMSG("QCOM GENI UART: Console deinitialized");
 
 	return TEE_SUCCESS;
 }
