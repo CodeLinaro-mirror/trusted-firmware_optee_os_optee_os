@@ -78,8 +78,6 @@ void qcom_diag_log_init(void)
 	if (!diag)
 		return;
 
-	dsb();
-
 	if (is_dload_mode_set()) {
 		if (diag->magic == DIAG_MAGIC) {
 			diag->magic = DIAG_MAGIC_DLOAD;
@@ -144,7 +142,7 @@ void qcom_diag_log_puts(const char *str)
 				diag->wrap++;
 		}
 		diag->offset = offset;
-
-		dsb();
 	}
+
+	dsb();
 }
