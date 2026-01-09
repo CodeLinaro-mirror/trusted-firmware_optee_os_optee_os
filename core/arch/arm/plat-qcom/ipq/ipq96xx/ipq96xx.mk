@@ -42,4 +42,29 @@ CFG_QCOM_GENI_UART ?= y
 CFG_QCOM_QUP_UART_BASE    ?= 0x01a84000
 CFG_QCOM_QUP_UART_SIZE    ?= 0x4000
 
+# Enable ARM Cryptographic Extensions
+CFG_CRYPTO_WITH_CE ?= y
+
+# Enable VFP context preservation (required for ARM CE)
+CFG_WITH_VFP ?= y
+
+# Enable hardware-accelerated AES
+CFG_CRYPTO_AES_ARM_CE ?= y
+CFG_CORE_CRYPTO_AES_ACCEL ?= y
+
+# Enable hardware-accelerated SHA-1
+CFG_CRYPTO_SHA1_ARM_CE ?= y
+CFG_CORE_CRYPTO_SHA1_ACCEL ?= y
+
+# Enable hardware-accelerated SHA-256
+CFG_CRYPTO_SHA256_ARM_CE ?= y
+CFG_CORE_CRYPTO_SHA256_ACCEL ?= y
+
+# Enable 64-bit polynomial multiplication support (for GCM)
+# This is supported by ARM CE
+CFG_HWSUPP_PMULT_64 ?= y
+
+# Disable table-based GCM since we're using hardware acceleration
+CFG_AES_GCM_TABLE_BASED := n
+
 endif
