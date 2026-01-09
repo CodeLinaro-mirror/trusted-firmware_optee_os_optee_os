@@ -1,6 +1,6 @@
 # IPQ Platform Family Common Configuration
 
-# This file contains common settings for all IPQ chipsets (IPQ5200, IPQ96xx, etc.)
+# This file contains common settings for all IPQ chipsets (IPQ52xx, IPQ96xx, etc.)
 # IPQ is Qualcomm's WLAN AP WiFi networking chipset family.
 #
 # Common features across IPQ platforms:
@@ -10,7 +10,7 @@
 
 # Define supported IPQ chipsets
 # EXTENSION POINT: Add new chipsets to this list
-IPQ_CHIPSETS := ipq5200 ipq96xx
+IPQ_CHIPSETS := ipq52xx ipq96xx
 
 # Validate chipset definitions
 $(foreach chip,$(IPQ_CHIPSETS),\

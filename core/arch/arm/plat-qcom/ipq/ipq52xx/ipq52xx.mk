@@ -1,6 +1,6 @@
-ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq5200-flavorlist)))
+ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq52xx-flavorlist)))
 
-CFG_IPQ5200 ?= y
+CFG_IPQ52XX ?= y
 
 # Hardware configuration
 # 4 cores (4 Cortex-A53) in a single cluster
@@ -8,14 +8,14 @@ CFG_TEE_CORE_NB_CORE ?= 4
 # Use log2(4)=2 to accommodate all 4 cores in the cluster
 CFG_CORE_CLUSTER_SHIFT ?= 2
 
-# IPQ5200 GIC(v2) configuration
+# IPQ52xx GIC(v2) configuration
 CFG_GIC ?= y
 CFG_GIC_BASE ?= 0xB000000
 CFG_GIC_SIZE ?= 0x5000
 CFG_GICD_OFFSET ?= 0x0
 CFG_GICC_OFFSET ?= 0x2000
 
-# IPQ5200 doesn't require HWRNG PTA since it has SoC RNG for HLOS use-cases
+# IPQ52xx doesn't require HWRNG PTA since it has SoC RNG for HLOS use-cases
 CFG_HWRNG_PTA ?= n
 
 CFG_TZDRAM_START ?= 0x8A680000
