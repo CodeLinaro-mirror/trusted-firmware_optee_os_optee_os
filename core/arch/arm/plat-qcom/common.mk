@@ -22,3 +22,6 @@ CFG_PSCI_ARM64 ?= n
 
 # 36-bit PA width to support platforms with memory beyond 4GB
 CFG_CORE_ARM64_PA_BITS ?= 36
+
+# TME Key Management depends on TME IPC support
+$(eval $(call cfg-depends-all,CFG_QCOM_TMEL_KM,CFG_QCOM_TMEL_COM))

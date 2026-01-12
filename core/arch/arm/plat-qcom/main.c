@@ -48,6 +48,17 @@ register_phys_mem_pgdir(MEM_AREA_IO_NSEC, QUP_UART_BASE, QUP_UART_REG_SIZE);
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, APSS_WDT_TMR2_BASE, 0x1000);
 #endif
 
+#if defined(CFG_QCOM_TMEL_KM)
+/*
+ * Register TCSR FUSE Hardware Key region as device memory.
+ * Both PRI and SEC HW key registers are within the same page,
+ * so a single registration covers both address ranges.
+ */
+register_phys_mem_pgdir(MEM_AREA_IO_SEC,
+			(TCSR_FUSE_PRI_HW_KEY_BASE_START & ~SMALL_PAGE_MASK),
+			SMALL_PAGE_SIZE);
+#endif
+
 #ifdef DRAM0_BASE
 register_ddr(DRAM0_BASE, DRAM0_SIZE);
 #endif
