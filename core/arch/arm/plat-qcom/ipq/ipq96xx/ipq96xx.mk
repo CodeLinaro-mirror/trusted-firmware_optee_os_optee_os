@@ -96,6 +96,16 @@ CFG_TCSR_FUSE_PRI_HW_KEY_BASE_START ?= 0x193D404
 CFG_TCSR_FUSE_PRI_HW_KEY_REG_COUNT ?= 8
 CFG_TCSR_FUSE_SEC_HW_KEY_BASE_START ?= 0x193D424
 CFG_TCSR_FUSE_SEC_HW_KEY_REG_COUNT ?= 8
+
+# QCOM Hardware Unique Key (HUK) support
+CFG_QCOM_HUK ?= y
+
+# Serial Number fuse register address (Die ID)
+CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
+
+# HUK subkey compatibility mode - use actual die ID from OTP
+CFG_CORE_HUK_SUBKEY_COMPAT ?= y
+CFG_CORE_HUK_SUBKEY_COMPAT_USE_OTP_DIE_ID ?= y
 endif
 
 # Hardware RNG configuration for IPQ96xx
@@ -104,5 +114,4 @@ CFG_WITH_SOFTWARE_PRNG ?= n
 CFG_HWRNG_PTA ?= y
 CFG_HWRNG_QUALITY ?= 1024
 CFG_HWRNG_RATE ?= 0
-
 endif

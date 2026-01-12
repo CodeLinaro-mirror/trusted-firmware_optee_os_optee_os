@@ -65,6 +65,10 @@
 #define SEC_WDOG_BARK_INT_ID		CFG_SEC_WDOG_BARK_INT_ID
 #endif
 
+#if defined(CFG_QCOM_HUK)
+#define QCOM_SERIAL_NUM_FUSE_ADDR		CFG_QCOM_SERIAL_NUM_FUSE_ADDR
+#endif
+
 /* DDR memory configuration */
 #ifdef CFG_DRAM0_BASE
 #define DRAM0_BASE			CFG_DRAM0_BASE
