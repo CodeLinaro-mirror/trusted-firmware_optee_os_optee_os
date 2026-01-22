@@ -106,6 +106,25 @@ CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
 # HUK subkey compatibility mode - use actual die ID from OTP
 CFG_CORE_HUK_SUBKEY_COMPAT ?= y
 CFG_CORE_HUK_SUBKEY_COMPAT_USE_OTP_DIE_ID ?= y
+
+# Secure Storage Configuration
+# RPMB FS for secure storage (REE FS is enabled in premium.mk)
+CFG_RPMB_FS ?= y
+
+# RPMB Configuration
+CFG_RPMB_FS_DEV_ID ?= 0
+CFG_RPMB_FS_CACHE_ENTRIES ?= 8
+CFG_RPMB_FS_RD_ENTRIES ?= 8
+
+# RPMB protects REE_FS
+CFG_REE_FS_INTEGRITY_RPMB ?= y
+
+# RPMB debugging (disabled for production)
+CFG_RPMB_FS_DEBUG_DATA ?= n
+
+# Never enable in production!
+CFG_RPMB_WRITE_KEY ?= y
+CFG_RPMB_TEST_KEY ?= y
 endif
 
 # Hardware RNG configuration for IPQ96xx

@@ -37,8 +37,10 @@ CFG_CRYPTO_CMAC ?= y
 CFG_CRYPTO_HKDF ?= y
 CFG_CRYPTO_PBKDF2 ?= y
 
-# Secure storage
+# Secure Storage Configuration
 CFG_REE_FS ?= y
+
+# Enable secure storage for TAs
 CFG_SECSTOR_TA ?= y
 
 # PTAs

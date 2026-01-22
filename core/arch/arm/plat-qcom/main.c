@@ -3,6 +3,7 @@
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
+#include <config.h>
 #include <drivers/gic.h>
 #include <kernel/boot.h>
 #include <kernel/misc.h>
@@ -11,6 +12,7 @@
 #include <drivers/qcom_geni_uart.h>
 #include <console.h>
 #include <tee_api_types.h>
+#include <tee/tee_fs.h>
 #include <trace.h>
 #include <io.h>
 #include <initcall.h>
@@ -267,3 +269,19 @@ void boot_secondary_init_intc(void)
 {
 	gic_init_per_cpu();
 }
+
+#if defined(CFG_RPMB_FS)
+bool plat_rpmb_key_is_ready(void)
+{
+	/*
+	 * Check if QCOM HUK is enabled at runtime.
+	 * If CFG_QCOM_HUK is not enabled, RPMB key derivation is not available.
+	 * When enabled, the HUK hardware registers are accessible and configured,
+	 * so RPMB keys can be derived using huk_subkey_derive().
+	 */
+	if (!IS_ENABLED(CFG_QCOM_HUK))
+		return false;
+
+	return true;
+}
+#endif
