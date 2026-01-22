@@ -42,6 +42,7 @@ CFG_QCOM_GENI_UART ?= y
 CFG_QCOM_QUP_UART_BASE    ?= 0x01a84000
 CFG_QCOM_QUP_UART_SIZE    ?= 0x4000
 
+ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
 # Enable ARM Cryptographic Extensions
 CFG_CRYPTO_WITH_CE ?= y
 
@@ -66,5 +67,6 @@ CFG_HWSUPP_PMULT_64 ?= y
 
 # Disable table-based GCM since we're using hardware acceleration
 CFG_AES_GCM_TABLE_BASED := n
+endif
 
 endif
