@@ -299,7 +299,7 @@
 #define TME_ACTION_HCS_ECDH_SHARED_SECRET		0x09
 #define TME_ACTION_HCS_AES_ENCRYPT			0x0A
 #define TME_ACTION_HCS_AES_DECRYPT			0x0B
-#define TME_ACTION_HCS_PRNG_GET				0x0C
+#define TME_ACTION_HCS_RNG_GET				0x0C
 #define TME_ACTION_HCS_INC_SHA_INIT			0x0D
 #define TME_ACTION_HCS_INC_SHA_UPDATE			0x0E
 #define TME_ACTION_HCS_INC_SHA_FINAL			0x0F
@@ -1389,18 +1389,18 @@
 			TME_MSG_PARAM_TYPE_BUF_OUT)
 
 /*
- * Get PRNG number
+ * Get RNG number
  * @param_id {length, outBuf, status,
  *	      {tmeErrorStatus, seqErrorStatus, seqKPErrorStatus0,
  *	      seqKPErrorStatus1, seqRspStatus}}
- * ref: TMEPRNGGetMessage_t
+ * ref: TMERNGGetMessage_t
  */
-#define TME_MSG_UID_HCS_PRNG_GET \
+#define TME_MSG_UID_HCS_RNG_GET \
 		TME_MSG_UID_CREATE(TME_MSG_HCS, \
-		TME_ACTION_HCS_PRNG_GET)
+		TME_ACTION_HCS_RNG_GET)
 
-#define TME_MSG_UID_HCS_PRNG_GET_PARAM_ID \
-		TME_MSG_CREATE_PARAM_ID_8( \
+#define TME_MSG_UID_HCS_RNG_GET_PARAM_ID \
+		(TME_MSG_CREATE_PARAM_ID_8( \
 			TME_MSG_PARAM_TYPE_VAL, \
 			TME_MSG_PARAM_TYPE_BUF_OUT, \
 			TME_MSG_PARAM_TYPE_VAL, \
@@ -1408,7 +1408,7 @@
 			TME_MSG_PARAM_TYPE_VAL, \
 			TME_MSG_PARAM_TYPE_VAL, \
 			TME_MSG_PARAM_TYPE_VAL, \
-			TME_MSG_PARAM_TYPE_VAL)
+			TME_MSG_PARAM_TYPE_VAL))
 
 /*
  * Get FIPS Approved Algorithm List

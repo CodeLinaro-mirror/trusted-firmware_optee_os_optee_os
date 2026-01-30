@@ -76,6 +76,16 @@ CFG_TME_QMP_INBOUND_MBOX_ADDR ?= 0x22090000
 CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x22091000
 CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
 
+# Hardware RNG configuration for IPQ96xx
+# Disable software PRNG and enable hardware RNG PTA
+CFG_WITH_SOFTWARE_PRNG ?= n
+CFG_HWRNG_PTA ?= y
+CFG_HWRNG_QUALITY ?= 1024
+CFG_HWRNG_RATE ?= 0
+
+# Use TMEL IPC for RNG access on IPQ96xx
+CFG_QCOM_TMEL_RNG ?= y
+
 ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
 # Enable ARM Cryptographic Extensions
 CFG_CRYPTO_WITH_CE ?= y
@@ -140,10 +150,4 @@ CFG_RPMB_WRITE_KEY ?= y
 CFG_RPMB_TEST_KEY ?= y
 endif
 
-# Hardware RNG configuration for IPQ96xx
-# Disable software PRNG and enable hardware RNG PTA
-CFG_WITH_SOFTWARE_PRNG ?= n
-CFG_HWRNG_PTA ?= y
-CFG_HWRNG_QUALITY ?= 1024
-CFG_HWRNG_RATE ?= 0
 endif
