@@ -258,6 +258,12 @@ void *tmecom_client_malloc_coherent(size_t size, size_t alignment,
 /*
  * Free cache-coherent buffer and remove MMU mapping.
  * Takes both coherent and original addresses for proper cleanup.
+ *
+ * NOTE: To prevent MMU mapping collisions, we only remove MMU mappings
+ * for large buffers (>= SMALL_PAGE_SIZE). Small buffers may share MMU
+ * mappings with other allocations due to page granularity. Removing
+ * a shared mapping would invalidate all buffers in that page, causing
+ * crashes when other buffers are accessed.
  */
 void tmecom_client_free_coherent(void *coherent_addr, void *orig_addr,
 				 size_t size)
@@ -267,11 +273,22 @@ void tmecom_client_free_coherent(void *coherent_addr, void *orig_addr,
 	if (!coherent_addr || !orig_addr || !size)
 		return;
 
-	/* Remove the coherent mapping */
-	res = core_mmu_remove_mapping(MEM_AREA_TEE_COHERENT, coherent_addr,
-				      size);
-	if (res != TEE_SUCCESS)
-		EMSG("Failed to remove coherent mapping: 0x%x", res);
+	/*
+	 * Only remove MMU mapping for large buffers (>= SMALL_PAGE_SIZE).
+	 * Small buffers may share MMU mappings with other allocations.
+	 * For small buffers, just free the memory and leave mapping intact.
+	 * The mapping will be cleaned up when the session ends or when
+	 * the large buffer that owns the mapping is freed.
+	 */
+	if (size >= SMALL_PAGE_SIZE) {
+		res = core_mmu_remove_mapping(MEM_AREA_TEE_COHERENT,
+					      coherent_addr, size);
+		if (res != TEE_SUCCESS)
+			EMSG("Failed to remove coherent mapping: 0x%x", res);
+	} else {
+		DMSG("Skipping MMU mapping removal for small buffer (size=%zu < %u)",
+		     size, SMALL_PAGE_SIZE);
+	}
 
 	/*
 	 * Free and wipe the original buffer.
