@@ -69,4 +69,11 @@ CFG_HWSUPP_PMULT_64 ?= y
 CFG_AES_GCM_TABLE_BASED := n
 endif
 
+# Hardware RNG configuration for IPQ96xx
+# Disable software PRNG and enable hardware RNG PTA
+CFG_WITH_SOFTWARE_PRNG ?= n
+CFG_HWRNG_PTA ?= y
+CFG_HWRNG_QUALITY ?= 1024
+CFG_HWRNG_RATE ?= 0
+
 endif
