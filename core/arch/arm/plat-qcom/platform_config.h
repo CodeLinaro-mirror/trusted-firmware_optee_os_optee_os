@@ -46,6 +46,9 @@
 /* Outgoing Interrupt: APSS -> TME (APCS_*_TZ_IPC_INTERRUPT)  */
 #define TME_QMP_IRQ_OUT_REG_ADDR	CFG_TME_QMP_IRQ_OUT_REG_ADDR
 #define TME_QMP_IRQ_OUT_BIT_MASK	CFG_TME_QMP_IRQ_OUT_BIT_MASK
+/* FEATURE_CONFIG2 fuse register - indicates if TMEL is bypassed on this part */
+#define FEATURE_CONFIG2_ADDR			CFG_QCOM_FEATURE_CONFIG2_ADDR
+#define FEATURE_CONFIG2_TMEL_BYPASS_DISABLE_BMSK	0x1
 #endif
 
 /* DDR memory configuration */

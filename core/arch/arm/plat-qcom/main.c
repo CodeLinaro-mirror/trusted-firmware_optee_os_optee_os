@@ -33,6 +33,12 @@ register_phys_mem_pgdir(MEM_AREA_IO_SEC,
 			SMALL_PAGE_SIZE);
 #endif
 
+#ifdef CFG_QCOM_TMEL_COM
+register_phys_mem(MEM_AREA_IO_SEC,
+		  (FEATURE_CONFIG2_ADDR & ~SMALL_PAGE_MASK),
+		  SMALL_PAGE_SIZE);
+#endif
+
 #ifdef CFG_QCOM_GENI_UART
 register_phys_mem_pgdir(MEM_AREA_IO_NSEC, QUP_UART_BASE, QUP_UART_REG_SIZE);
 #endif

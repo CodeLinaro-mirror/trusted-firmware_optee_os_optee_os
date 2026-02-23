@@ -9,6 +9,7 @@
 #include <malloc.h>
 #include <mm/core_memprot.h>
 #include <mm/core_mmu.h>
+#include <platform_config.h>
 #include <stdlib_ext.h>
 #include <string.h>
 #include <trace.h>
@@ -299,6 +300,35 @@ void tmecom_client_free_coherent(void *coherent_addr, void *orig_addr,
 }
 
 /*
+ * Check if TMEL is bypassed by reading the FEATURE_CONFIG2 fuse register.
+ *
+ * The TMEL_BYPASS_DISABLE bit semantics:
+ *   0 = bypass is NOT disabled => TMEL is bypassed (not up)
+ *   1 = bypass is disabled     => TMEL is active (up)
+ *
+ * Returns true if TMEL is not up (bit is 0), false if TMEL is active (bit is 1).
+ */
+static bool is_tmel_bypassed(void)
+{
+	struct io_pa_va feature_config2_pa_va = {
+		.pa = FEATURE_CONFIG2_ADDR,
+		.va = 0,
+	};
+	uint32_t *feature_config2_reg;
+	uint32_t reg_value;
+
+	feature_config2_reg = (uint32_t *)io_pa_or_va(&feature_config2_pa_va,
+						       sizeof(uint32_t));
+	if (!feature_config2_reg)
+		return false;
+
+	reg_value = io_read32((vaddr_t)feature_config2_reg);
+
+	/* TMEL is bypassed (not up) when the BYPASS_DISABLE bit is 0 */
+	return !(reg_value & FEATURE_CONFIG2_TMEL_BYPASS_DISABLE_BMSK);
+}
+
+/*
  * Check if TME server is connected and ready for communication.
  * Validates link state, channel handle, and connection status.
  */
@@ -536,6 +566,12 @@ TEE_Result tmecom_client_session_start(void)
 	enum glink_err_type glink_ret;
 	uint64_t start_time;
 
+	/* Check if TMEL is bypassed */
+	if (is_tmel_bypassed()) {
+		DMSG("TMEL not up - Skipping session start for TMECOM");
+		return TEE_SUCCESS;
+	}
+
 	/* Initialize lock */
 	glink_ctx.tmecom_lock = SPINLOCK_UNLOCK;
 
@@ -718,6 +754,14 @@ tmecom_client_send_message(uint32_t tme_msg_uid, uint32_t tme_msg_param_id,
 	union tmecom_mbox_ipc_payload *ipc_payload = &g_ipc_mailbox.payload;
 	void *payload_data = NULL;
 	bool lock_held = false;
+
+	if (is_tmel_bypassed()) {
+		/* TMEL is bypassed, return success to prevent IPC calls from failing */
+		if (tme_err)
+			*tme_err = TMECOM_RSP_SUCCESS;
+		DMSG("TMEL not up - Skipping TMECOM IPC");
+		return TEE_SUCCESS;
+	}
 
 	if (!generic_payload || !generic_payload_len) {
 		EMSG("Invalid parameters: uid=0x%x payload=%p len=%u",
