@@ -109,6 +109,7 @@ subdirs-$(CFG_DRIVERS_RSTCTRL) += rstctrl
 subdirs-$(CFG_DRIVERS_REMOTEPROC) += remoteproc
 subdirs-$(CFG_SCMI_MSG_DRIVERS) += scmi-msg
 subdirs-y += imx
+subdirs-y += qcom
 subdirs-y += pm
 subdirs-y += wdt
 subdirs-y += rtc
