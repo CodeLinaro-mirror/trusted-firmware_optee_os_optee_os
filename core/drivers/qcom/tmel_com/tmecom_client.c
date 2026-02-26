@@ -367,6 +367,7 @@ static void tmecom_notify_rx(glink_handle_type handle,
 	size_t user_payload_len = 0;
 	void *payload_data = NULL;
 	enum glink_err_type rx_done_ret;
+	uint32_t exceptions;
 
 	/* Suppress unused parameter warnings */
 	(void)handle;
@@ -377,12 +378,21 @@ static void tmecom_notify_rx(glink_handle_type handle,
 	if (!ptr)
 		return;
 
+	/*
+	 * Mask interrupts at entry to ensure critical section executes
+	 * with interrupts disabled as required by OP-TEE spinlock model:
+	 * mask → acquire lock → critical section → unlock → unmask
+	 */
+	exceptions = thread_mask_exceptions(THREAD_EXCP_FOREIGN_INTR);
+
 	memcpy(&out_user_data, &glink_ctx.user_data, sizeof(out_user_data));
 	user_payload = out_user_data.cb_data.generic_payload;
 	user_payload_len = out_user_data.cb_data.generic_payload_len;
 
-	if (!user_payload)
+	if (!user_payload) {
+		thread_unmask_exceptions(exceptions);
 		return;
+	}
 
 	/* Copy mailbox data locally */
 	memcpy(&g_ipc_mailbox, ptr,
@@ -427,11 +437,18 @@ static void tmecom_notify_rx(glink_handle_type handle,
 	if (!glink_ctx.tmecom_blocking) {
 		send_rsp_cb = out_user_data.cb_after_rx;
 		if (send_rsp_cb) {
+			/*
+			 * Unlock and unmask interrupts before callback execution
+			 */
 			cpu_spin_unlock(&glink_ctx.tmecom_lock);
+			thread_unmask_exceptions(exceptions);
 			send_rsp_cb(tme_rsp, &out_user_data.cb_data);
 			return;
 		}
 	}
+
+	/* Unmask interrupts before returning (for blocking case) */
+	thread_unmask_exceptions(exceptions);
 }
 
 /*
@@ -566,6 +583,7 @@ TEE_Result tmecom_client_session_start(void)
 	enum tmecom_response result = TMECOM_RSP_SUCCESS;
 	enum glink_err_type glink_ret;
 	uint64_t start_time;
+	uint32_t exceptions;
 
 	/* Check if TMEL is bypassed */
 	if (is_tmel_bypassed()) {
@@ -576,9 +594,13 @@ TEE_Result tmecom_client_session_start(void)
 	/* Initialize lock */
 	glink_ctx.tmecom_lock = SPINLOCK_UNLOCK;
 
+	/* Disable foreign interrupts before acquiring spinlock */
+	exceptions = thread_mask_exceptions(THREAD_EXCP_FOREIGN_INTR);
+
 	/* Try to acquire lock - return BUSY if already held */
 	if (!cpu_spin_trylock(&glink_ctx.tmecom_lock)) {
 		EMSG("Session start failed: lock already held");
+		thread_unmask_exceptions(exceptions);
 		return tmecom_to_tee_result(TMECOM_RSP_FAILURE_BUSY);
 	}
 
@@ -659,6 +681,7 @@ exit:
 	}
 
 	cpu_spin_unlock(&glink_ctx.tmecom_lock);
+	thread_unmask_exceptions(exceptions);
 
 	return tmecom_to_tee_result(result);
 }
@@ -672,11 +695,16 @@ TEE_Result tmecom_client_session_end(void)
 	enum tmecom_response result = TMECOM_RSP_SUCCESS;
 	enum glink_err_type glink_ret;
 	uint64_t start_time;
+	uint32_t exceptions;
+
+	/* Disable foreign interrupts before acquiring spinlock */
+	exceptions = thread_mask_exceptions(THREAD_EXCP_FOREIGN_INTR);
 
 	/* Try to acquire lock - return BUSY if already held */
 	if (!cpu_spin_trylock(&glink_ctx.tmecom_lock)) {
 		EMSG("Session end failed: lock already held");
 		result = TMECOM_RSP_FAILURE_BUSY;
+		thread_unmask_exceptions(exceptions);
 		goto exit;
 	}
 
@@ -717,6 +745,7 @@ TEE_Result tmecom_client_session_end(void)
 
 unlock_exit:
 	cpu_spin_unlock(&glink_ctx.tmecom_lock);
+	thread_unmask_exceptions(exceptions);
 
 exit:
 	return tmecom_to_tee_result(result);
@@ -743,6 +772,7 @@ tmecom_client_send_message(uint32_t tme_msg_uid, uint32_t tme_msg_param_id,
 	union tmecom_mbox_ipc_payload *ipc_payload = &g_ipc_mailbox.payload;
 	void *payload_data = NULL;
 	bool lock_held = false;
+	uint32_t exceptions = 0;
 
 	if (is_tmel_bypassed()) {
 		/* TMEL is bypassed, return success to prevent IPC calls from failing */
@@ -774,11 +804,15 @@ tmecom_client_send_message(uint32_t tme_msg_uid, uint32_t tme_msg_param_id,
 		goto exit;
 	}
 
+	/* Disable foreign interrupts before acquiring spinlock */
+	exceptions = thread_mask_exceptions(THREAD_EXCP_FOREIGN_INTR);
+
 	/* Try to acquire lock - return BUSY if already held */
 	if (!cpu_spin_trylock(&glink_ctx.tmecom_lock)) {
 		EMSG("Send message failed: lock already held, uid=0x%x",
 		     tme_msg_uid);
 		result = TMECOM_RSP_FAILURE_BUSY;
+		thread_unmask_exceptions(exceptions);
 		goto exit;
 	}
 	lock_held = true;
@@ -877,12 +911,15 @@ tmecom_client_send_message(uint32_t tme_msg_uid, uint32_t tme_msg_param_id,
 		}
 
 		cpu_spin_unlock(&glink_ctx.tmecom_lock);
+		thread_unmask_exceptions(exceptions);
 		return tmecom_to_tee_result(result);
 	}
 
 exit:
-	if (lock_held && result)
+	if (lock_held && result) {
 		cpu_spin_unlock(&glink_ctx.tmecom_lock);
+		thread_unmask_exceptions(exceptions);
+	}
 
 	if (tme_err)
 		*tme_err = result;
