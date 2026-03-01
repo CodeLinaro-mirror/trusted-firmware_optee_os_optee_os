@@ -18,7 +18,7 @@ CFG_GICC_OFFSET ?= 0x2000
 # IPQ52xx doesn't require HWRNG PTA since it has SoC RNG for HLOS use-cases
 CFG_HWRNG_PTA ?= n
 
-CFG_TZDRAM_START ?= 0x8A680000
+CFG_TZDRAM_START ?= 0x87D80000
 
 # DDR memory configuration
 CFG_DRAM0_BASE ?= 0x80000000
