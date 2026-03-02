@@ -68,6 +68,18 @@ CFG_HWSUPP_PMULT_64 ?= y
 # Disable table-based GCM since we're using hardware acceleration
 CFG_AES_GCM_TABLE_BASED := n
 
+# Secure watchdog bark interrupt handler
+CFG_QCOM_SEC_WDOG ?= y
+
+# APSS_WDT_TMR2_BASE base address
+CFG_APSS_WDT_BASE ?= 0x0F411000
+
+# Watchdog register offset
+CFG_WDOG_RESET_REG_OFFSET ?= 0x4
+
+# Secure watchdog bark interrupt ID
+CFG_SEC_WDOG_BARK_INT_ID ?= 0x36
+
 # TME IPC support
 CFG_QCOM_TMEL_COM ?= y
 CFG_TME_QMP_IRQ_IN_ID ?= 154u
