@@ -581,11 +581,6 @@ TEE_Result tmecom_client_session_start(void)
 		return tmecom_to_tee_result(TMECOM_RSP_FAILURE_BUSY);
 	}
 
-#ifdef CFG_IPQ96XX
-	/* Lower secure watchdog interrupt priority for RUMI workaround */
-	lower_sec_wdog_priority();
-#endif
-
 	WRITE_ONCE(glink_ctx.glink_state, GLINK_LOCAL_DISCONNECTED);
 
 	if (!glink_ctx.link_up) {
@@ -659,10 +654,6 @@ exit:
 		/* Clear global Glink context */
 		memset(&glink_ctx, 0, sizeof(glink_ctx));
 
-#ifdef CFG_IPQ96XX
-		/* Restore secure watchdog interrupt priority on error path */
-		restore_sec_wdog_priority();
-#endif
 	}
 
 	cpu_spin_unlock(&glink_ctx.tmecom_lock);
@@ -720,11 +711,6 @@ TEE_Result tmecom_client_session_end(void)
 
 	/* Clear global Glink context */
 	memset(&glink_ctx, 0, sizeof(glink_ctx));
-
-#ifdef CFG_IPQ96XX
-	/* Restore secure wdog interrupt priority on successful session end */
-	restore_sec_wdog_priority();
-#endif
 
 unlock_exit:
 	cpu_spin_unlock(&glink_ctx.tmecom_lock);
