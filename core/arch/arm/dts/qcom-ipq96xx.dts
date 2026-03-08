@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: ISC
+/*
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ */
+
+/dts-v1/;
+
+/ {
+	compatible = "qcom,ipq96xx";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	gcc: clock-controller@1800000 {
+		compatible = "qcom,gcc-ipq96xx";
+		reg = <0x01800000 0x40000>; /* gcc_mem */
+		reg-names = "gcc";
+		#clock-cells = <1>;
+		#reset-cells = <1>;
+	};
+
+	/* CDSP (Compute DSP) Subsystem - also known as NSP */
+	cdsp_ss: remoteproc@26300000 {
+		compatible = "qcom,ipq96xx-cdsp-ss";
+		reg = <0x4A0000 0x10000>,    /* MPM2_MPM */
+		      <0x26008000 0x14000>,  /* TURING_CC */
+		      <0x26080000 0x1F000>,  /* TURING_TCSR */
+		      <0x26300000 0x100000>, /* TURING_QDSP6V81SS */
+		      <0x01966000 0x1000>,   /* TCSR */
+		      <0x01800000 0x40000>;  /* GCC - Global Clock Controller */
+		reg-names = "mpm2_mpm",
+			    "turing_cc",
+			    "turing_tcsr",
+			    "turing_qdsp6v81ss",
+			    "tcsr",
+			    "gcc";
+		clocks = <&gcc 0>, /* QCOM_CLK_GCC_Q6SS_TSCTR_1TO2 */
+			 <&gcc 1>, /* QCOM_CLK_GCC_TURING_EPCB_RX */
+			 <&gcc 2>, /* QCOM_CLK_GCC_TURING_Q6_AXIM_DIV */
+			 <&gcc 3>, /* QCOM_CLK_GCC_TURING_PCLK_DBG */
+			 <&gcc 4>, /* QCOM_CLK_GCC_TURING_Q6SS_TRIG */
+			 <&gcc 5>, /* QCOM_CLK_GCC_TURING_CXO */
+			 <&gcc 6>, /* QCOM_CLK_GCC_TURING_ATBM_AT */
+			 <&gcc 7>, /* QCOM_CLK_GCC_TURING_AHBS */
+			 <&gcc 8>, /* QCOM_CLK_GCC_TURING_GEMNOC */
+			 <&gcc 9>; /* QCOM_CLK_GCC_CNOC_TURING_AHBS */
+		clock-names = "q6ss_tsctr_1to2",
+			      "turing_epcb_rx",
+			      "turing_q6_axim_div",
+			      "turing_pclk_dbg",
+			      "turing_q6ss_trig",
+			      "turing_cxo",
+			      "turing_atbm_at",
+			      "turing_ahbs",
+			      "turing_gemnoc",
+			      "cnoc_turing_ahbs";
+		status = "okay";
+	};
+};

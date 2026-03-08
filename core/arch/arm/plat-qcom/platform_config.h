@@ -80,4 +80,10 @@
 #define DRAM1_SIZE			CFG_DRAM1_SIZE
 #endif
 
+/* PAS (Peripheral Authentication Service) IDs for CDSP */
+#if defined(PLATFORM_FLAVOR_ipq96xx) || defined(PLATFORM_FLAVOR_ipq96xx_lm)
+#define PAS_ID_CDSP			18
+#define PAS_ID_CDSP_DTB			37
+#endif
+
 #endif /* PLATFORM_CONFIG_H */

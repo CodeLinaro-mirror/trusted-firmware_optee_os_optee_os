@@ -48,5 +48,4 @@ CFG_SYSTEM_PTA ?= y
 
 # Early TAs to include
 CFG_IN_TREE_EARLY_TAS ?= pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee
-CFG_IN_TREE_EARLY_TAS += remoteproc/80a4c275-0a47-4905-8285-1486a9771a08
 CFG_IN_TREE_EARLY_TAS += trusted_keys/f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c
