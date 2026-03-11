@@ -91,9 +91,12 @@ TEE_Result tmecom_client_send_message(uint32_t tme_msg_uid,
 
 /*
  * Allocate cache-coherent buffer
+ * Returns: Coherent virtual address, or NULL on failure
+ * orig_addr: Output parameter for original virtual address (for cleanup)
+ * phys_addr: Output parameter for physical/DMA address
  */
 void *tmecom_client_malloc_coherent(size_t size, size_t alignment,
-				    void **orig_addr);
+				    void **orig_addr, paddr_t *phys_addr);
 
 /*
  * Free cache-coherent buffer

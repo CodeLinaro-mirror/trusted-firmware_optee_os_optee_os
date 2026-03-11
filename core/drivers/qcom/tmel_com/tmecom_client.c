@@ -207,16 +207,16 @@ TEE_Result tmecom_to_tee_result(enum tmecom_response status)
 
 /*
  * Allocate cache-coherent buffer for TME COM communication.
- * Returns coherent address and original address for cleanup.
+ * Returns coherent address, original address, and physical address.
  */
 void *tmecom_client_malloc_coherent(size_t size, size_t alignment,
-				    void **orig_addr)
+				    void **orig_addr, paddr_t *phys_addr)
 {
 	void *buf_tmp = NULL;
 	void *buf_coherent = NULL;
 	paddr_t buf_paddr = 0;
 
-	if (!size || !alignment || !orig_addr)
+	if (!size || !alignment || !orig_addr || !phys_addr)
 		return NULL;
 
 	/* Allocate aligned buffer */
@@ -250,8 +250,9 @@ void *tmecom_client_malloc_coherent(size_t size, size_t alignment,
 	/* Clear the buffer to ensure no stale data */
 	memset(buf_coherent, 0, size);
 
-	/* Return original address via parameter */
+	/* Return original address and physical address via parameters */
 	*orig_addr = buf_tmp;
+	*phys_addr = buf_paddr;
 
 	return buf_coherent;
 }
@@ -628,13 +629,13 @@ TEE_Result tmecom_client_session_start(void)
 	g_sram_payload_data_coh =
 		tmecom_client_malloc_coherent(TMECOM_SRAM_IPC_MAX_BUF_SIZE,
 					      TMECOM_4_BYTE_ALIGNED,
-					      &g_sram_payload_orig_addr);
+					      &g_sram_payload_orig_addr,
+					      &g_sram_payload_data_paddr);
 	if (!g_sram_payload_data_coh) {
 		EMSG("Failed to allocate SRAM payload buffer");
 		result = TMECOM_RSP_FAILURE;
 		goto exit;
 	}
-	g_sram_payload_data_paddr = virt_to_phys(g_sram_payload_data_coh);
 
 exit:
 	if (result) {
@@ -645,6 +646,7 @@ exit:
 						    TMECOM_SRAM_IPC_MAX_BUF_SIZE);
 			g_sram_payload_data_coh = NULL;
 			g_sram_payload_orig_addr = NULL;
+			g_sram_payload_data_paddr = 0;
 		}
 
 		/* De-register client callbacks */
@@ -707,6 +709,7 @@ TEE_Result tmecom_client_session_end(void)
 					    TMECOM_SRAM_IPC_MAX_BUF_SIZE);
 		g_sram_payload_data_coh = NULL;
 		g_sram_payload_orig_addr = NULL;
+		g_sram_payload_data_paddr = 0;
 	}
 
 	/* Clear global Glink context */
