@@ -42,6 +42,27 @@ CFG_QCOM_GENI_UART ?= y
 CFG_QCOM_QUP_UART_BASE    ?= 0x01a84000
 CFG_QCOM_QUP_UART_SIZE    ?= 0x4000
 
+# Secure watchdog bark interrupt handler
+CFG_QCOM_SEC_WDOG ?= y
+
+# APSS_WDT_TMR2_BASE base address
+CFG_APSS_WDT_BASE ?= 0x0F411000
+
+# Watchdog register offset
+CFG_WDOG_RESET_REG_OFFSET ?= 0x4
+
+# Secure watchdog bark interrupt ID
+CFG_SEC_WDOG_BARK_INT_ID ?= 0x36
+
+# TME IPC support
+CFG_QCOM_TMEL_COM ?= y
+CFG_TME_QMP_IRQ_IN_ID ?= 153u
+CFG_TME_QMP_IRQ_OUT_REG_ADDR ?= 0xF400008
+CFG_TME_QMP_IRQ_OUT_BIT_MASK ?= 0x00200000
+CFG_TME_QMP_INBOUND_MBOX_ADDR ?= 0x32090000
+CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x32091000
+CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
+
 ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
 # Enable ARM Cryptographic Extensions
 CFG_CRYPTO_WITH_CE ?= y
@@ -67,27 +88,6 @@ CFG_HWSUPP_PMULT_64 ?= y
 
 # Disable table-based GCM since we're using hardware acceleration
 CFG_AES_GCM_TABLE_BASED := n
-
-# Secure watchdog bark interrupt handler
-CFG_QCOM_SEC_WDOG ?= y
-
-# APSS_WDT_TMR2_BASE base address
-CFG_APSS_WDT_BASE ?= 0x0F411000
-
-# Watchdog register offset
-CFG_WDOG_RESET_REG_OFFSET ?= 0x4
-
-# Secure watchdog bark interrupt ID
-CFG_SEC_WDOG_BARK_INT_ID ?= 0x36
-
-# TME IPC support
-CFG_QCOM_TMEL_COM ?= y
-CFG_TME_QMP_IRQ_IN_ID ?= 153u
-CFG_TME_QMP_IRQ_OUT_REG_ADDR ?= 0xF400008
-CFG_TME_QMP_IRQ_OUT_BIT_MASK ?= 0x00200000
-CFG_TME_QMP_INBOUND_MBOX_ADDR ?= 0x32090000
-CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x32091000
-CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
 
 # TME Key Management support
 CFG_QCOM_TMEL_KM ?= y

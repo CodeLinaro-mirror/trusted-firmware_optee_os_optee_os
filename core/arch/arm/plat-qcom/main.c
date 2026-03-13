@@ -169,7 +169,7 @@ static enum itr_return sec_wdog_bark_handler(struct itr_handler *h __unused)
 /*
  * Initialize and register the secure watchdog bark interrupt handler
  */
-TEE_Result qcom_sec_wdog_init(void)
+static TEE_Result qcom_sec_wdog_init(void)
 {
 	TEE_Result res;
 	struct itr_handler *handler = NULL;
