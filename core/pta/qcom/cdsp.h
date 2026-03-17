@@ -32,8 +32,6 @@ struct cdsp_hw_resources {
 extern struct cdsp_hw_resources cdsp_hw;
 extern struct qcom_pas_data cdsp_dtb_data;
 
-TEE_Result qcom_cdsp_init(const void *fdt, int node,
-			  const void *compat_data);
 TEE_Result cdsp_start(struct qcom_pas_data *rproc);
 TEE_Result cdsp_stop(struct qcom_pas_data *rproc);
 

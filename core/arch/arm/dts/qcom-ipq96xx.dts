@@ -20,7 +20,7 @@
 
 	/* CDSP (Compute DSP) Subsystem - also known as NSP */
 	cdsp_ss: remoteproc@26300000 {
-		compatible = "qcom,ipq96xx-cdsp-ss";
+		compatible = "qcom,remoteproc-cdsp";
 		reg = <0x4A0000 0x10000>,    /* MPM2_MPM */
 		      <0x26008000 0x14000>,  /* TURING_CC */
 		      <0x26080000 0x1F000>,  /* TURING_TCSR */

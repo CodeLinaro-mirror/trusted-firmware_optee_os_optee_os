@@ -8,8 +8,9 @@
 #include <drivers/clk_dt.h>
 #include <drivers/clk_qcom.h>
 #include "cdsp.h"
+#include <initcall.h>
 #include <io.h>
-#include <kernel/dt_driver.h>
+#include <kernel/dt.h>
 #include <kernel/panic.h>
 #include <kernel/delay.h>
 #include <libfdt.h>
@@ -158,9 +159,7 @@ TEE_Result cdsp_start(struct qcom_pas_data *rproc)
 	return TEE_SUCCESS;
 }
 
-/*
- * Helper function to map a device tree register region
- */
+/* Map named DT register region to secure virtual memory */
 static TEE_Result map_hw_region(const void *fdt, int node, const char *reg_name,
 				struct io_pa_va *region)
 {
@@ -199,13 +198,31 @@ static TEE_Result map_hw_region(const void *fdt, int node, const char *reg_name,
 	return TEE_SUCCESS;
 }
 
-TEE_Result qcom_cdsp_init(const void *fdt, int node,
-			  const void *compat_data __unused)
+/* Initialize CDSP hardware by parsing DT and mapping register regions */
+static TEE_Result qcom_cdsp_init(void)
 {
-	TEE_Result res;
+	TEE_Result res = TEE_ERROR_GENERIC;
+	const void *fdt = NULL;
+	int node = -1;
 
 	if (cdsp_hw.initialized)
 		return TEE_SUCCESS;
+
+	fdt = get_dt();
+	if (!fdt) {
+		EMSG("Failed to get device tree");
+		return TEE_ERROR_GENERIC;
+	}
+
+	/* Locate CDSP remoteproc node (absence not an error) */
+	node = fdt_node_offset_by_compatible(fdt, -1, "qcom,remoteproc-cdsp");
+	if (node < 0) {
+		DMSG("CDSP node not found in device tree (error: %d)", node);
+		return TEE_SUCCESS;
+	}
+
+	DMSG("Found CDSP node at offset %d, initializing hardware resources",
+	     node);
 
 	res = map_hw_region(fdt, node, "mpm2_mpm", &cdsp_hw.mpm2_mpm);
 	if (res)
@@ -317,16 +334,5 @@ TEE_Result cdsp_stop(struct qcom_pas_data *rproc __unused)
 	return TEE_SUCCESS;
 }
 
-/* Device tree match table */
-static const struct dt_device_match cdsp_match_table[] = {
-	{ .compatible = "qcom,ipq96xx-cdsp-ss" },
-	{ }
-};
-
-/* Register device tree driver */
-DEFINE_DT_DRIVER(qcom_cdsp_dt_driver) = {
-	.name = "qcom-cdsp-remoteproc",
-	.type = DT_DRIVER_NOTYPE,
-	.match_table = cdsp_match_table,
-	.probe = qcom_cdsp_init,
-};
+/* Late init ensures MMU and clock framework are ready */
+driver_init_late(qcom_cdsp_init);
