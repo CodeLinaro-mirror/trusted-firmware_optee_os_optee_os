@@ -51,6 +51,14 @@ CFG_QCOM_HUK ?= y
 
 # Serial Number fuse register address (Die ID)
 CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
+
+# TME Key Management support
+CFG_QCOM_TMEL_KM ?= y
+# TCSR Hardware Key Register Configuration
+CFG_TCSR_FUSE_PRI_HW_KEY_BASE_START ?= 0x193D404
+CFG_TCSR_FUSE_PRI_HW_KEY_REG_COUNT ?= 8
+CFG_TCSR_FUSE_SEC_HW_KEY_BASE_START ?= 0x193D424
+CFG_TCSR_FUSE_SEC_HW_KEY_REG_COUNT ?= 8
 endif
 
 endif
