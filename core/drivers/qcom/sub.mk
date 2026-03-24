@@ -3,3 +3,6 @@ subdirs-$(CFG_QCOM_TMEL_COM) += tmel_com glink_lite xport_qmp
 
 # QCOM Hardware Unique Key (HUK) API
 subdirs-$(CFG_QCOM_HUK) += qcom_huk
+
+# QFPROM driver
+subdirs-$(CFG_QCOM_QFPROM) += qfprom

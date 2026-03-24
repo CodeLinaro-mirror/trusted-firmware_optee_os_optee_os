@@ -2,6 +2,10 @@ ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq52xx-flavorlist)))
 
 CFG_IPQ52XX ?= y
 
+# Device Tree configuration
+CFG_DT ?= y
+CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq52xx.dts
+
 # Hardware configuration
 # 4 cores (4 Cortex-A53) in a single cluster
 CFG_TEE_CORE_NB_CORE ?= 4
@@ -59,4 +63,13 @@ CFG_SDCC_ICE_LUT_KEYS_SIZE ?= 0x2000
 # TCSR_TME_KEYSLOT_3_KEY_POLICY_0_ADDR
 CFG_TCSR_KEYSLOT_ADDR ?= 0x193D46C
 endif
+
+# QFPROM driver support
+CFG_QCOM_QFPROM ?= y
+CFG_QFPROM_PTA ?= y
+CFG_QCOM_TMEL_FUSE ?= y
+
+# TME-L Secure Authentication support
+CFG_QCOM_TMEL_AUTH ?= y
+
 endif
