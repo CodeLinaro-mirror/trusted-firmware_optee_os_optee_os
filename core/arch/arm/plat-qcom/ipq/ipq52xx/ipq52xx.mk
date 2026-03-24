@@ -44,4 +44,13 @@ CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x32091000
 
 # FEATURE_CONFIG2 fuse register - indicates if TMEL is bypassed on this part
 CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
+
+ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
+# QCOM Hardware Unique Key (HUK) support
+CFG_QCOM_HUK ?= y
+
+# Serial Number fuse register address (Die ID)
+CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
+endif
+
 endif
