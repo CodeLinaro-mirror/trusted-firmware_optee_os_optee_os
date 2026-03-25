@@ -17,8 +17,10 @@
 #include <trace.h>
 #include <util.h>
 
+#ifdef CFG_QCOM_PAS_PTA
 /* Include CDSP header for cdsp_hw structure */
 #include "cdsp.h"
+#endif
 
 #if defined(PLATFORM_FLAVOR_ipq96xx) || defined(PLATFORM_FLAVOR_ipq96xx_lm)
 /* GCC (Global Clock Controller) Register Offsets for CDSP */
@@ -91,6 +93,7 @@
  */
 static TEE_Result cdsp_gcc_clk_enable(void)
 {
+#ifdef CFG_QCOM_PAS_PTA
 	/* Enable GCC clocks by writing to CBCR registers */
 	io_write32(cdsp_hw.gcc.va + GCC_Q6SS_TSCTR_1TO2_CLK_CBCR,
 		   CBCR_CLK_ENABLE);
@@ -112,6 +115,7 @@ static TEE_Result cdsp_gcc_clk_enable(void)
 		   CBCR_CLK_ENABLE);
 	io_write32(cdsp_hw.gcc.va + GCC_CNOC_TURING_AHBS_CLK_CBCR,
 		   CBCR_CLK_ENABLE);
+#endif /* CFG_QCOM_PAS_PTA */
 
 	return TEE_SUCCESS;
 }
@@ -123,6 +127,7 @@ static TEE_Result cdsp_gcc_clk_enable(void)
  */
 static TEE_Result cdsp_gcc_ahbs_clk_control(bool is_enable)
 {
+#ifdef CFG_QCOM_PAS_PTA
 	if (is_enable) {
 		/* Enable GCC clocks */
 		io_write32(cdsp_hw.gcc.va + GCC_TURING_AHBS_CLK_CBCR,
@@ -131,6 +136,7 @@ static TEE_Result cdsp_gcc_ahbs_clk_control(bool is_enable)
 		/* Disable GCC clocks */
 		io_write32(cdsp_hw.gcc.va + GCC_TURING_AHBS_CLK_CBCR, 0);
 	}
+#endif /* CFG_QCOM_PAS_PTA */
 
 	return TEE_SUCCESS;
 }
@@ -141,6 +147,7 @@ static TEE_Result cdsp_gcc_ahbs_clk_control(bool is_enable)
  */
 static TEE_Result cdsp_cc_enable(void)
 {
+#ifdef CFG_QCOM_PAS_PTA
 	/* Configure TURING CC clocks with hardware control */
 	io_write32(cdsp_hw.turing_cc.va + TURING_CC_Q6SS_Q6_AXIM_CBCR,
 		   CLK_ENABLE_HW_CTL);
@@ -198,6 +205,7 @@ static TEE_Result cdsp_cc_enable(void)
 	/* Configure CDSPAUX bridge delay */
 	io_write32(cdsp_hw.turing_cc.va + CDSPAUX_BUS_BRIDGE_HALT,
 		   CDSPAUX_BRIDGE_DELAY_CYCLES);
+#endif /* CFG_QCOM_PAS_PTA */
 
 	return TEE_SUCCESS;
 }
