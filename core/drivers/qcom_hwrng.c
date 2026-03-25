@@ -53,12 +53,12 @@ TEE_Result hw_get_random_bytes(void *buf, size_t len)
 			 * Return error to caller - no fallback to
 			 * maintain security
 			 */
-			return res;
+			goto exit;
 		}
 
 		return TEE_SUCCESS;
 	}
-
+exit:
 	/*
 	 * Runtime fallback when CFG_QCOM_TMEL_RNG is disabled or
 	 * NATIVE_INTR is disabled
