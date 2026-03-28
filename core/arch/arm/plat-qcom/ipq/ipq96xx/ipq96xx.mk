@@ -148,6 +148,9 @@ CFG_RPMB_FS_DEBUG_DATA ?= n
 # Never enable in production!
 CFG_RPMB_WRITE_KEY ?= y
 CFG_RPMB_TEST_KEY ?= y
+
+# Enable Secure Storage AES PTA
+CFG_NAND_FS_ENC_PTA ?= y
 endif
 
 endif
