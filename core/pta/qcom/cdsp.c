@@ -328,9 +328,6 @@ TEE_Result cdsp_stop(struct qcom_pas_data *rproc __unused)
 
 	io_write32(cdsp_hw.turing_cc.va + TURING_CC_ALT_RESET_CTL, 0x0);
 
-	cdsp_data.fw_base = 0;
-	cdsp_data.fw_size = 0;
-
 	return TEE_SUCCESS;
 }
 

@@ -16,6 +16,12 @@
  */
 #define TMECOM_DEFAULT_TIMEOUT 1000000
 
+/* Generic TME-L buffer descriptor */
+struct tmel_buf_desc {
+	uint32_t buf;
+	uint32_t buf_len;
+};
+
 /*
  * Tmecom Response Codes
  */
