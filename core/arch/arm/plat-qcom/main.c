@@ -61,6 +61,22 @@ register_phys_mem_pgdir(MEM_AREA_IO_SEC,
 			SMALL_PAGE_SIZE);
 #endif
 
+#ifdef CFG_EMMC_ICE_FS_ENC_PTA
+/*
+ * Register TCSR TME KEYSLOT region for ICE key policy access.
+ */
+register_phys_mem_pgdir(MEM_AREA_IO_SEC,
+			(TCSR_KEYSLOT_ADDR & ~SMALL_PAGE_MASK),
+			SMALL_PAGE_SIZE);
+
+/*
+ * Register ICE (Inline Crypto Engine) register regions.
+ */
+register_phys_mem_pgdir(MEM_AREA_IO_SEC,
+			(SDCC_ICE_LUT_KEYS & ~SMALL_PAGE_MASK),
+			SDCC_ICE_LUT_KEYS_SIZE);
+#endif
+
 #ifdef DRAM0_BASE
 register_ddr(DRAM0_BASE, DRAM0_SIZE);
 #endif
