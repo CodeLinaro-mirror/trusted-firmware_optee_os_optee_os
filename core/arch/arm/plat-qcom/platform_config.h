@@ -90,6 +90,8 @@
 #if defined(PLATFORM_FLAVOR_ipq96xx) || defined(PLATFORM_FLAVOR_ipq96xx_lm)
 #define PAS_ID_CDSP			18
 #define PAS_ID_CDSP_DTB			37
+#define SW_ID_CDSP          23
+#define SW_ID_CDSP_DTB      82
 #endif
 
 #endif /* PLATFORM_CONFIG_H */

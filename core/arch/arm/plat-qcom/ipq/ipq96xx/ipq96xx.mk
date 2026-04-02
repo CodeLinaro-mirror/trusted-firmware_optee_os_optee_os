@@ -114,6 +114,10 @@ CFG_AES_GCM_TABLE_BASED := n
 
 # TME Key Management support
 CFG_QCOM_TMEL_KM ?= y
+
+# TME-L Secure Authentication support
+CFG_QCOM_TMEL_AUTH ?= y
+
 # TCSR Hardware Key Register Configuration
 CFG_TCSR_FUSE_PRI_HW_KEY_BASE_START ?= 0x193D404
 CFG_TCSR_FUSE_PRI_HW_KEY_REG_COUNT ?= 8
