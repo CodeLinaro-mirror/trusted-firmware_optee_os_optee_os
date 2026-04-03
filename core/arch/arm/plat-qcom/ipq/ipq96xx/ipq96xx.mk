@@ -136,8 +136,9 @@ CFG_CORE_HUK_SUBKEY_COMPAT_USE_OTP_DIE_ID ?= y
 
 # Secure Storage Configuration
 # RPMB FS for secure storage (REE FS is enabled in premium.mk)
-CFG_RPMB_FS ?= y
+CFG_RPMB_FS ?= n
 
+ifeq ($(CFG_RPMB_FS),y)
 # RPMB Configuration
 CFG_RPMB_FS_DEV_ID ?= 0
 CFG_RPMB_FS_CACHE_ENTRIES ?= 8
@@ -150,8 +151,9 @@ CFG_REE_FS_INTEGRITY_RPMB ?= y
 CFG_RPMB_FS_DEBUG_DATA ?= n
 
 # Never enable in production!
-CFG_RPMB_WRITE_KEY ?= y
-CFG_RPMB_TEST_KEY ?= y
+CFG_RPMB_WRITE_KEY ?= n
+CFG_RPMB_TEST_KEY ?= n
+endif
 
 # Enable filesystem encryption PTAs
 CFG_NAND_FS_ENC_PTA ?= y
