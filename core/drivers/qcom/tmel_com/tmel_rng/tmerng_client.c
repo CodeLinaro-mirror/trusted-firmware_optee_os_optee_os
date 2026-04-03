@@ -10,10 +10,16 @@
 #include <tee_api_types.h>
 #include <trace.h>
 #include <mm/core_memprot.h>
+#include <config.h>
+#include <kernel/thread.h>
+#include <rng_support.h>
 
 #include "tmerng_client.h"
 #include "tmecom_client.h"
 #include "tmemessages_uids.h"
+
+#define RNG_POOL_BASE		(IMEM_BASE + 0x920UL)
+#define RNG_POOL_SIZE		32U
 
 /* TME Status codes */
 #define TME_STATUS_SUCCESS		0
@@ -32,7 +38,7 @@ static TEE_Result tme_status_to_tee_result(uint32_t tme_status)
 	}
 }
 
-TEE_Result tme_rng_get_random(void *buf, size_t len)
+TEE_Result tme_rng_get_data(void *buf, size_t len)
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct tme_rng_get_msg msg = { };
@@ -125,4 +131,62 @@ cleanup:
 					    rng_buf_size);
 
 	return ret;
+}
+
+TEE_Result tme_hw_get_random_bytes(void *buf, size_t len)
+{
+	TEE_Result res;
+	size_t filled = 0;
+	uint8_t *output = (uint8_t *)buf;
+
+	if (!buf || len == 0)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	/*
+	 * With native interrupts masked, when RNG requests occur during the
+	 * normal world exit path where TMEL IPC is not functional. A fallback
+	 * RNG is used, sourcing data from a memory region populated by U-Boot
+	 * SPL to support stack canary generation.
+	 */
+	if (thread_get_exceptions() & THREAD_EXCP_NATIVE_INTR) {
+		static size_t offset;
+		uint8_t *rng_pool =
+			(uint8_t *)phys_to_virt(RNG_POOL_BASE,
+						MEM_AREA_IO_SEC,
+						RNG_POOL_SIZE);
+		size_t i;
+
+		if (!rng_pool) {
+			EMSG("IMEM RNG POOL region not mapped (phys 0x%lx)",
+			     (unsigned long)RNG_POOL_BASE);
+			return TEE_ERROR_GENERIC;
+		}
+
+		for (i = 0; i < len; i++) {
+			size_t src_idx = offset % RNG_POOL_SIZE;
+
+			output[i] = rng_pool[src_idx];
+			rng_pool[src_idx] = (uint8_t)(0xBEEFCAFEU >>
+						     ((src_idx % 4) * 8));
+			offset++;
+		}
+
+		return TEE_SUCCESS;
+	}
+
+	while (filled < len) {
+		size_t chunk = len - filled;
+
+		if (chunk > TME_RNG_MAX_LENGTH)
+			chunk = TME_RNG_MAX_LENGTH;
+
+		res = tme_rng_get_data(output + filled, chunk);
+		if (res != TEE_SUCCESS) {
+			EMSG("TMEL IPC RNG failed: 0x%x", res);
+			return res;
+		}
+		filled += chunk;
+	}
+
+	return TEE_SUCCESS;
 }

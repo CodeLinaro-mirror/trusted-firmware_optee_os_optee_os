@@ -26,16 +26,7 @@ register_phys_mem_pgdir(MEM_AREA_IO_NSEC, GENI_UART_REG_BASE,
 #endif
 
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
-
-#ifdef CFG_QCOM_DIAG_LOG
-register_phys_mem_pgdir(MEM_AREA_IO_SEC, DIAG_BASE, DIAG_SIZE);
-register_phys_mem_pgdir(MEM_AREA_IO_SEC,
-			(DIAG_LOG_START_INFO & ~SMALL_PAGE_MASK),
-			SMALL_PAGE_SIZE);
-register_phys_mem_pgdir(MEM_AREA_IO_SEC,
-			(TCSR_BOOT_MISC_DETECT & ~SMALL_PAGE_MASK),
-			SMALL_PAGE_SIZE);
-#endif
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, IMEM_BASE, CORE_MMU_PGDIR_SIZE);
 
 #ifdef CFG_QCOM_TMEL_COM
 register_phys_mem(MEM_AREA_IO_SEC,

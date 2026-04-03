@@ -9,7 +9,7 @@
 #include <mm/generic_ram_layout.h>
 
 #define STACK_ALIGNMENT		64
-
+#define IMEM_BASE                       CFG_IMEM_BASE
 #define GIC_BASE			CFG_GIC_BASE
 #define GIC_SIZE			CFG_GIC_SIZE
 #define GICD_OFFSET			CFG_GICD_OFFSET

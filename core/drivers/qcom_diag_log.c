@@ -18,6 +18,9 @@
 #define DIAG_MAGIC_DLOAD	0xD15AB1ED /* DLOAD mode - logging disabled */
 #define DLOAD_MAGIC_COOKIE	0x10       /* Download mode detection value */
 
+register_phys_mem_pgdir(MEM_AREA_IO_SEC,
+			(TCSR_BOOT_MISC_DETECT & ~SMALL_PAGE_MASK),
+			SMALL_PAGE_SIZE);
 /**
  * struct diag - Main diagnostic region structure
  * @magic:       Magic identifier to validate the region
