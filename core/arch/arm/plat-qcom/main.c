@@ -4,7 +4,9 @@
  */
 
 #include <config.h>
+#include <console.h>
 #include <drivers/gic.h>
+#include <drivers/qcom_geni_uart.h>
 #include <kernel/boot.h>
 #include <kernel/misc.h>
 #include <platform_config.h>
@@ -15,6 +17,12 @@
 #include <initcall.h>
 #ifndef CFG_ARM_GICV3
 #include <gicv2_config.h>
+#endif
+
+#ifdef CFG_QCOM_GENI_UART
+static struct qcom_geni_uart_data console_data;
+register_phys_mem_pgdir(MEM_AREA_IO_NSEC, GENI_UART_REG_BASE,
+			GENI_UART_REG_SIZE);
 #endif
 
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
@@ -146,7 +154,6 @@ static void register_el3_delegated_interrupts(itr_handler_t handler)
 #endif
 
 #ifdef CFG_QCOM_SEC_WDOG
-
 /*
  * Secure watchdog bark interrupt handler
  * This handler pets the watchdog by writing to the reset register
@@ -205,7 +212,23 @@ void plat_console_init(void)
 #ifdef CFG_QCOM_DIAG_LOG
 	qcom_diag_log_init();
 #endif
+#ifdef CFG_QCOM_GENI_UART
+	qcom_geni_uart_init(&console_data, GENI_UART_REG_BASE);
+	register_serial_console(&console_data.chip);
+#endif
 }
+
+#ifdef CFG_QCOM_GENI_UART
+static TEE_Result plat_console_deinit(void)
+{
+	register_serial_console(NULL);
+	IMSG("QCOM GENI UART: Console deinitialized");
+
+	return TEE_SUCCESS;
+}
+
+boot_final(plat_console_deinit);
+#endif
 
 /**
  * get_core_pos_mpidr() - Get core position from MPIDR
