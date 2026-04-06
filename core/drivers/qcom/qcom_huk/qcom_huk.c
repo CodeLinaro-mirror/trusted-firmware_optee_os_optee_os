@@ -65,7 +65,11 @@ TEE_Result tee_otp_get_hw_unique_key(struct tee_hw_unique_key *hwkey)
 	/* Setup KDF specification for base HUK derivation */
 	kdf_spec.kdf_algo = TME_KAL_KDF_NIST;
 	kdf_spec.policy = key_policy;
-	kdf_spec.security_context = TME_KSC_SWContext;
+	kdf_spec.security_context = TME_KSC_SOCSecBootState |
+				   TME_KSC_TMELifecycleState |
+				   TME_KSC_SOCDebugState |
+				   TME_KSC_ChildKeyPolicy |
+				   TME_KSC_SWContext;
 	kdf_spec.prf_digest_algo = TME_KAL_SHA512_HMAC;
 	kdf_spec.input_key = TME_KID_CHIP_RAND_BASE;
 	kdf_spec.l2_key = TME_KID_L2_KEYWRAPSVC;
