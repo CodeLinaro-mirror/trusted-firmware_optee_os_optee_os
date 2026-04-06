@@ -9,19 +9,12 @@
 #include <kernel/misc.h>
 #include <platform_config.h>
 #include <drivers/qcom_diag_log.h>
-#include <drivers/qcom_geni_uart.h>
-#include <console.h>
-#include <tee_api_types.h>
 #include <tee/tee_fs.h>
 #include <trace.h>
 #include <io.h>
 #include <initcall.h>
 #ifndef CFG_ARM_GICV3
 #include <gicv2_config.h>
-#endif
-
-#ifdef CFG_QCOM_GENI_UART
-static struct qcom_geni_uart_data console_data;
 #endif
 
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
@@ -40,10 +33,6 @@ register_phys_mem_pgdir(MEM_AREA_IO_SEC,
 register_phys_mem(MEM_AREA_IO_SEC,
 		  (FEATURE_CONFIG2_ADDR & ~SMALL_PAGE_MASK),
 		  SMALL_PAGE_SIZE);
-#endif
-
-#ifdef CFG_QCOM_GENI_UART
-register_phys_mem_pgdir(MEM_AREA_IO_NSEC, QUP_UART_BASE, QUP_UART_REG_SIZE);
 #endif
 
 #ifdef CFG_QCOM_SEC_WDOG
@@ -213,35 +202,10 @@ void plat_trace_ext_puts(const char *str __maybe_unused)
 
 void plat_console_init(void)
 {
-	TEE_Result res __maybe_unused = TEE_SUCCESS;
-
 #ifdef CFG_QCOM_DIAG_LOG
 	qcom_diag_log_init();
 #endif
-
-#ifdef CFG_QCOM_GENI_UART
-	res = qcom_geni_uart_init(&console_data);
-
-	if (res == TEE_SUCCESS) {
-		register_serial_console(&console_data.chip);
-		IMSG("QCOM GENI UART: Console initialized");
-	} else {
-		EMSG("QCOM GENI UART: Console init failed (0x%x)", res);
-	}
-#endif
 }
-
-#ifdef CFG_QCOM_GENI_UART
-static TEE_Result plat_console_deinit(void)
-{
-	register_serial_console(NULL);
-	IMSG("QCOM GENI UART: Console deinitialized");
-
-	return TEE_SUCCESS;
-}
-
-boot_final(plat_console_deinit);
-#endif
 
 /**
  * get_core_pos_mpidr() - Get core position from MPIDR

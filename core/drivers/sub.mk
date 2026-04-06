@@ -93,7 +93,6 @@ srcs-$(CFG_SEMIHOSTING_CONSOLE) += semihosting_console.c
 srcs-$(CFG_FFA_CONSOLE) += ffa_console.c
 srcs-$(CFG_OPENEDGES_OMC) += openedges_omc.c
 srcs-$(CFG_QCOM_DIAG_LOG) += qcom_diag_log.c
-srcs-$(CFG_QCOM_GENI_UART) += qcom_geni_uart.c
 srcs-$(CFG_HWRNG_PTA) += qcom_hwrng.c
 
 subdirs-y += crypto
