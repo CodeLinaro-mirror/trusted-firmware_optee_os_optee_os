@@ -74,6 +74,11 @@
 #define TCSR_KEYSLOT_ADDR			CFG_TCSR_KEYSLOT_ADDR
 #endif
 
+#if defined(CFG_QCOM_QRNG)
+#define QRNG_BASE_ADDR				CFG_QRNG_BASE_ADDR
+#define QRNG_EE5_BASE_ADDR			CFG_QRNG_EE5_BASE_ADDR
+#endif
+
 /* DDR memory configuration */
 #ifdef CFG_DRAM0_BASE
 #define DRAM0_BASE			CFG_DRAM0_BASE
