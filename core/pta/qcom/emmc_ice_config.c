@@ -28,9 +28,9 @@ static inline void ice_reg_write(paddr_t addr, uint32_t mask, uint32_t shift,
 }
 
 /* Configure OPS (OEM Product Seed) derived key */
-static TEE_Result tzbsp_ice_ops_key_cfg(uint32_t key_len, uint32_t alg_mode,
-					uint8_t *sw_context, uint32_t ctx_len,
-					uint32_t dstKeyIndex)
+static TEE_Result ice_ops_key_cfg(uint32_t key_len, uint32_t alg_mode,
+				   uint8_t *sw_context, uint32_t ctx_len,
+				   uint32_t dstKeyIndex)
 {
 	TEE_Result status = TEE_ERROR_GENERIC;
 	struct tme_kdf_spec kdfspec = {};
@@ -131,8 +131,8 @@ static TEE_Result tzbsp_ice_ops_key_cfg(uint32_t key_len, uint32_t alg_mode,
 }
 
 /* Configure hardware key (CRBK derived) */
-static TEE_Result tzbsp_ice_hw_key_cfg(uint32_t key_len, uint32_t alg_mode,
-				       uint32_t dstKeyIndex)
+static TEE_Result ice_hw_key_cfg(uint32_t key_len, uint32_t alg_mode,
+				  uint32_t dstKeyIndex)
 {
 	TEE_Result status = TEE_ERROR_GENERIC;
 	struct tme_kdf_spec kdfspec = {};
@@ -439,13 +439,13 @@ static TEE_Result cmd_ice_generate_hw_key(uint32_t param_types,
 		ctx_len2 = 0;
 	}
 
-	if (seed_type != TZ_ICE_CRYPTO_CRBK_TYPE &&
-	    seed_type != TZ_ICE_CRYPTO_OEMPRODSEED_TYPE) {
+	if (seed_type != ICE_CRYPTO_CRBK_TYPE &&
+	    seed_type != ICE_CRYPTO_OEMPRODSEED_TYPE) {
 		EMSG("ICE: Invalid seed type %u", seed_type);
 		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
-	if (seed_type == TZ_ICE_CRYPTO_OEMPRODSEED_TYPE) {
+	if (seed_type == ICE_CRYPTO_OEMPRODSEED_TYPE) {
 		if (key_len != ICE_CRYPTO_KEY_SIZE_128 &&
 		    key_len != ICE_CRYPTO_KEY_SIZE_256) {
 			EMSG("ICE: Invalid key length");
@@ -472,12 +472,12 @@ static TEE_Result cmd_ice_generate_hw_key(uint32_t param_types,
 			return TEE_ERROR_BAD_PARAMETERS;
 		}
 
-		ret = tzbsp_ice_ops_key_cfg(key_len, alg_mode, sw_context1,
-					    ctx_len1,
-					    TMEL_ICE_ENDPOINT_DATA_KEY_SLOT_3);
+		ret = ice_ops_key_cfg(key_len, alg_mode, sw_context1,
+				      ctx_len1,
+				      TMEL_ICE_ENDPOINT_DATA_KEY_SLOT_3);
 		if (ret == TEE_SUCCESS) {
 			if (alg_mode == ICE_CRYPTO_ALGO_MODE_AES_XTS) {
-				ret = tzbsp_ice_ops_key_cfg(
+				ret = ice_ops_key_cfg(
 					key_len, alg_mode,
 					sw_context2, ctx_len2,
 					TMEL_ICE_ENDPOINT_SALT_KEY_SLOT_2);
@@ -490,11 +490,11 @@ static TEE_Result cmd_ice_generate_hw_key(uint32_t param_types,
 			     ret);
 		}
 	} else {
-		ret = tzbsp_ice_hw_key_cfg(key_len, alg_mode,
-					   TMEL_ICE_ENDPOINT_DATA_KEY_SLOT_3);
+		ret = ice_hw_key_cfg(key_len, alg_mode,
+				     TMEL_ICE_ENDPOINT_DATA_KEY_SLOT_3);
 		if (ret == TEE_SUCCESS) {
 			if (alg_mode == ICE_CRYPTO_ALGO_MODE_AES_XTS) {
-				ret = tzbsp_ice_hw_key_cfg(
+				ret = ice_hw_key_cfg(
 					key_len, alg_mode,
 					TMEL_ICE_ENDPOINT_SALT_KEY_SLOT_2);
 				if (ret != TEE_SUCCESS)
