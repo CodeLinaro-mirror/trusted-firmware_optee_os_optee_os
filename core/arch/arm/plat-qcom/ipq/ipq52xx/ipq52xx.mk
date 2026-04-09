@@ -5,8 +5,6 @@ CFG_IPQ52XX ?= y
 # Hardware configuration
 # 4 cores (4 Cortex-A53) in a single cluster
 CFG_TEE_CORE_NB_CORE ?= 4
-# Use log2(4)=2 to accommodate all 4 cores in the cluster
-CFG_CORE_CLUSTER_SHIFT ?= 2
 
 # IPQ52xx GIC(v2) configuration
 CFG_GIC ?= y
@@ -14,9 +12,6 @@ CFG_GIC_BASE ?= 0xB000000
 CFG_GIC_SIZE ?= 0x5000
 CFG_GICD_OFFSET ?= 0x0
 CFG_GICC_OFFSET ?= 0x2000
-
-# IPQ52xx doesn't require HWRNG PTA since it has SoC RNG for HLOS use-cases
-CFG_HWRNG_PTA ?= n
 
 CFG_TZDRAM_START ?= 0x87D80000
 
@@ -34,12 +29,9 @@ CFG_QCOM_DIAG_LOG_START_INFO ?= 0x8600730
 CFG_QCOM_DIAG_LOG_SIZE_INFO ?= 0x8600734
 CFG_QCOM_TCSR_BOOT_MISC_DETECT ?= 0x195C100
 
-# GENI UART support
-CFG_QCOM_GENI_UART ?= y
+# GENI UART base address
 CFG_GENI_UART_BASE ?= 0x01a84000
 
-# TME IPC support
-CFG_QCOM_TMEL_COM ?= y
 CFG_TME_QMP_IRQ_IN_ID ?= 100u
 CFG_TME_QMP_IRQ_OUT_REG_ADDR ?= 0x0B111004
 CFG_TME_QMP_IRQ_OUT_BIT_MASK ?= 0x00200000
@@ -50,23 +42,14 @@ CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x32091000
 CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
 
 ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
-# QCOM Hardware Unique Key (HUK) support
-CFG_QCOM_HUK ?= y
-
 # Serial Number fuse register address (Die ID)
 CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
 
-# TME Key Management support
-CFG_QCOM_TMEL_KM ?= y
 # TCSR Hardware Key Register Configuration
 CFG_TCSR_FUSE_PRI_HW_KEY_BASE_START ?= 0x193D404
 CFG_TCSR_FUSE_PRI_HW_KEY_REG_COUNT ?= 8
 CFG_TCSR_FUSE_SEC_HW_KEY_BASE_START ?= 0x193D424
 CFG_TCSR_FUSE_SEC_HW_KEY_REG_COUNT ?= 8
-
-# Enable filesystem encryption PTAs
-CFG_NAND_FS_ENC_PTA ?= y
-CFG_EMMC_ICE_FS_ENC_PTA ?= y
 
 # ICE (Inline Crypto Engine) configuration
 # SDC1_SDCC_ICE_LUT_KEYS_REG_BASE
@@ -76,5 +59,4 @@ CFG_SDCC_ICE_LUT_KEYS_SIZE ?= 0x2000
 # TCSR_TME_KEYSLOT_3_KEY_POLICY_0_ADDR
 CFG_TCSR_KEYSLOT_ADDR ?= 0x193D46C
 endif
-
 endif

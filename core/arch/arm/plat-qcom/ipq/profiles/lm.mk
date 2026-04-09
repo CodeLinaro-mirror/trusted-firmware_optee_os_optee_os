@@ -7,6 +7,12 @@ CFG_TEE_RAM_VA_SIZE ?= 0x80000
 # Reduce heap size to 32KB for minimal feature set
 CFG_CORE_HEAP_SIZE ?= 0x8000
 
+# GENI UART support
+CFG_QCOM_GENI_UART ?= y
+
+# TME IPC support
+CFG_QCOM_TMEL_COM ?= y
+
 # Basic crypto configuration
 CFG_WITH_SOFTWARE_PRNG ?= y
 CFG_CRYPTO ?= y
