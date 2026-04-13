@@ -234,6 +234,8 @@ qcom_pas_auth_and_reset(uint32_t pt, TEE_Param params[TEE_NUM_PARAMS])
 
 #ifdef CFG_QCOM_TMEL_AUTH
 	/* Common authentication parameters */
+	auth_params.elf_buf.buf = (uint32_t)metadata_internal_paddr;
+	auth_params.elf_buf.buf_len = metadata_size;
 	auth_params.region_list.buf = 0;
 	auth_params.region_list.buf_len = 0;
 	auth_params.relocate = 0;
@@ -247,9 +249,6 @@ qcom_pas_auth_and_reset(uint32_t pt, TEE_Param params[TEE_NUM_PARAMS])
 #ifdef CFG_QCOM_TMEL_AUTH
 		/* Authenticate CDSP DTB with TME-L */
 		auth_params.sw_id = SW_ID_CDSP_DTB;
-		auth_params.elf_buf.buf = (uint32_t)metadata_internal_paddr;
-		auth_params.elf_buf.buf_len = metadata_size;
-
 		res = tmel_secure_auth_v2(&auth_params);
 		if (res != TEE_SUCCESS) {
 			EMSG("TME-L auth for CDSP_DTB failed");
