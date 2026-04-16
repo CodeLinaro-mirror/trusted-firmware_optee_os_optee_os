@@ -27,6 +27,7 @@ register_phys_mem_pgdir(MEM_AREA_IO_NSEC, GENI_UART_REG_BASE,
 
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, GIC_BASE, GIC_SIZE);
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, IMEM_BASE, CORE_MMU_PGDIR_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, TCSR_BASE, CORE_MMU_PGDIR_SIZE);
 
 #ifdef CFG_QCOM_TMEL_COM
 register_phys_mem(MEM_AREA_IO_SEC,
@@ -38,25 +39,7 @@ register_phys_mem(MEM_AREA_IO_SEC,
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, APSS_WDT_TMR2_BASE, 0x1000);
 #endif
 
-#if defined(CFG_QCOM_TMEL_KM)
-/*
- * Register TCSR FUSE Hardware Key region as device memory.
- * Both PRI and SEC HW key registers are within the same page,
- * so a single registration covers both address ranges.
- */
-register_phys_mem_pgdir(MEM_AREA_IO_SEC,
-			(TCSR_FUSE_PRI_HW_KEY_BASE_START & ~SMALL_PAGE_MASK),
-			SMALL_PAGE_SIZE);
-#endif
-
 #ifdef CFG_EMMC_ICE_FS_ENC_PTA
-/*
- * Register TCSR TME KEYSLOT region for ICE key policy access.
- */
-register_phys_mem_pgdir(MEM_AREA_IO_SEC,
-			(TCSR_KEYSLOT_ADDR & ~SMALL_PAGE_MASK),
-			SMALL_PAGE_SIZE);
-
 /*
  * Register ICE (Inline Crypto Engine) register regions.
  */

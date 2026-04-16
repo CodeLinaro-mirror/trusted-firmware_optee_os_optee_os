@@ -42,6 +42,7 @@
 #define TCSR_TURING_MASTER_IDLE         0x0008
 #define TCSR_TURING_PWR_ON              0x000C
 #define TCSR_TURING_IL1_MASTER_IDLE     0x0010
+#define TCSR_SPARE_REG0                 0x1959000
 
 /* MPM2 control register */
 #define MPM2_MPM_CONTROL_CNTCR          0x1000
@@ -71,6 +72,9 @@
 #define CDSP_DTB_CONFIG_5_REG            0x74
 #define CDSP_Q6SS_BOOT_CTRL_REG          0x18
 
+/* Q6 Debug control value */
+#define CDSP_Q6SS_BREAK_AT_START         0x20000001
+
 /* DTB configuration values */
 #define CDSP_DTB_CHIP_FAMILY_ID          0x00B40303
 #define CDSP_DTB_VERSION                 0x00000100
@@ -84,6 +88,8 @@ TEE_Result cdsp_start(struct qcom_pas_data *rproc)
 	uint32_t boot_status;
 	uint64_t timeout_expire;
 	uint32_t boot_vector_evb;
+	int debug_q6 = 0;
+	vaddr_t spare_reg_va;
 
 	if (!cdsp_hw.initialized) {
 		EMSG("CDSP hardware resources not initialized");
@@ -91,6 +97,13 @@ TEE_Result cdsp_start(struct qcom_pas_data *rproc)
 	}
 
 	boot_vector_evb = (uint32_t)(rproc->fw_base >> 4);
+	spare_reg_va = (vaddr_t)phys_to_virt(TCSR_SPARE_REG0, MEM_AREA_IO_SEC,
+					     sizeof(uint32_t));
+	if (spare_reg_va)
+		debug_q6 = io_read32(spare_reg_va) & 0x1;
+	else
+		EMSG("TCSR_SPARE_REG0 mapping failed");
+
 
 	/* Configure boot vector */
 	io_write32(cdsp_hw.turing_tcsr.va + TURING_TCSR_RST_EVB_SEL_REG,
@@ -115,6 +128,9 @@ TEE_Result cdsp_start(struct qcom_pas_data *rproc)
 		   CDSP_DTB_VERSION);
 	io_write32(cdsp_hw.turing_qdsp6ss.va + CDSP_DTB_CONFIG_5_REG,
 		   cdsp_dtb_data.fw_size);
+	if (debug_q6)
+		io_write32(cdsp_hw.turing_qdsp6ss.va + CDSP_Q6SS_BOOT_CTRL_REG,
+			   CDSP_Q6SS_BREAK_AT_START);
 
 	io_write32(cdsp_hw.turing_qdsp6ss.va + CDSP_Q6SS_BOOT_CMD_REG,
 		   CDSP_BOOT_CMD_START);
