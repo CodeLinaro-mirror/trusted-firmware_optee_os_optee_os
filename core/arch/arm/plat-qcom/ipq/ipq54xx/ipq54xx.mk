@@ -9,6 +9,9 @@ CFG_TEE_CORE_NB_CORE ?= 4
 # IPQ54xx-specific memory layout
 CFG_TZDRAM_START ?= 0x89E00000
 
+#IMEM Base address
+CFG_IMEM_BASE ?= 0x8600000
+
 # DDR memory configuration
 CFG_DRAM0_BASE ?= 0x80000000
 CFG_DRAM0_SIZE ?= 0x80000000

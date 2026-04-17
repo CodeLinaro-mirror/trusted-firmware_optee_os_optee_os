@@ -50,6 +50,18 @@ struct tme_rng_get_msg {
  *
  * Returns: TEE_SUCCESS on success, error code otherwise
  */
-TEE_Result tme_rng_get_random(void *buf, size_t len);
+TEE_Result tme_rng_get_data(void *buf, size_t len);
+
+/*
+ * TMEL-backed implementation of hw_get_random_bytes.
+ * Handles the IMEM fallback when native interrupts are masked and
+ * delegates to tme_rng_get_data for normal operation.
+ *
+ * @buf: Buffer to store random bytes
+ * @len: Number of random bytes to generate
+ *
+ * Returns: TEE_SUCCESS on success, error code otherwise
+ */
+TEE_Result tme_hw_get_random_bytes(void *buf, size_t len);
 
 #endif /* __TMERNG_H */
