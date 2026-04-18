@@ -55,4 +55,11 @@
 			      "cnoc_turing_ahbs";
 		status = "okay";
 	};
+
+	/* TME Authentication */
+	tme_auth: tme-auth {
+		compatible = "qcom,tme-auth";
+		qcom,tme-auth-version = <2>; /* TME auth V2 for IPQ96xx */
+		status = "okay";
+	};
 };

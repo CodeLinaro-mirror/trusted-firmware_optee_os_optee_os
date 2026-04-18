@@ -22,6 +22,12 @@ struct tmel_buf_desc {
 	uint32_t buf_len;
 };
 
+/* Region structure for relocation feature */
+struct TmeRegion_t {
+	uint32_t startAddr;
+	uint32_t endAddr;
+} __packed;
+
 /*
  * Tmecom Response Codes
  */
