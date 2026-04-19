@@ -43,19 +43,9 @@ struct tme_rng_get_msg {
 };
 
 /*
- * Get random bytes from TME RNG
- *
- * @buf: Buffer to store random bytes
- * @len: Number of random bytes to generate (max TME_RNG_MAX_LENGTH)
- *
- * Returns: TEE_SUCCESS on success, error code otherwise
- */
-TEE_Result tme_rng_get_data(void *buf, size_t len);
-
-/*
  * TMEL-backed implementation of hw_get_random_bytes.
- * Handles the IMEM fallback when native interrupts are masked and
- * delegates to tme_rng_get_data for normal operation.
+ * Handles TMEL bypass detection and IMEM fallback when needed.
+ * Delegates to TMEL IPC for normal operation.
  *
  * @buf: Buffer to store random bytes
  * @len: Number of random bytes to generate

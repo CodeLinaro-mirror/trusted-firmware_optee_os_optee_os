@@ -309,7 +309,7 @@ void tmecom_client_free_coherent(void *coherent_addr, void *orig_addr,
  *
  * Returns true if TMEL is not up (bit is 0), false if TMEL is active (bit is 1).
  */
-static bool is_tmel_bypassed(void)
+bool tmecom_is_tmel_bypassed(void)
 {
 	struct io_pa_va feature_config2_pa_va = {
 		.pa = FEATURE_CONFIG2_ADDR,
@@ -586,7 +586,7 @@ TEE_Result tmecom_client_session_start(void)
 	uint32_t exceptions;
 
 	/* Check if TMEL is bypassed */
-	if (is_tmel_bypassed()) {
+	if (tmecom_is_tmel_bypassed()) {
 		DMSG("TMEL not up - Skipping session start for TMECOM");
 		return TEE_SUCCESS;
 	}
@@ -774,11 +774,10 @@ tmecom_client_send_message(uint32_t tme_msg_uid, uint32_t tme_msg_param_id,
 	bool lock_held = false;
 	uint32_t exceptions = 0;
 
-	if (is_tmel_bypassed()) {
-		/* TMEL is bypassed, return success to prevent IPC calls from failing */
+	if (tmecom_is_tmel_bypassed()) {
 		if (tme_err)
 			*tme_err = TMECOM_RSP_SUCCESS;
-		DMSG("TMEL not up - Skipping TMECOM IPC");
+		DMSG("TMEL bypassed - skipping IPC");
 		return TEE_SUCCESS;
 	}
 

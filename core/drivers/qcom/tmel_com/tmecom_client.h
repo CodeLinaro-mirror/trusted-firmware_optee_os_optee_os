@@ -121,4 +121,10 @@ void tmecom_client_free_coherent(void *coherent_addr, void *orig_addr,
  */
 TEE_Result tmecom_to_tee_result(enum tmecom_response status);
 
+/*
+ * Check if TMEL is bypassed
+ * Returns: true if TMEL is bypassed/not available, false if TMEL is active
+ */
+bool tmecom_is_tmel_bypassed(void);
+
 #endif /* __TMECOM_CLIENT_H */

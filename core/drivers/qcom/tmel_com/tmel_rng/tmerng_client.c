@@ -13,6 +13,7 @@
 #include <config.h>
 #include <kernel/thread.h>
 #include <rng_support.h>
+#include <atomic.h>
 
 #include "tmerng_client.h"
 #include "tmecom_client.h"
@@ -20,6 +21,42 @@
 
 #define RNG_POOL_BASE		(IMEM_BASE + 0x920UL)
 #define RNG_POOL_SIZE		32U
+
+/*
+ * Get random bytes from bootloader-populated RNG pool in IMEM.
+ * U-Boot SPL initializes this pool during early boot.
+ */
+static TEE_Result get_bootloader_rng_pool(void *buf, size_t len)
+{
+	static uint32_t offset;
+	uint8_t *output = (uint8_t *)buf;
+	uint8_t *rng_pool;
+	size_t i;
+
+	if (len > RNG_POOL_SIZE)
+		IMSG("Bootloader RNG pool request (%zu) exceeds size (%u)",
+		     len, RNG_POOL_SIZE);
+
+	rng_pool = (uint8_t *)phys_to_virt(RNG_POOL_BASE,
+					   MEM_AREA_IO_SEC,
+					   RNG_POOL_SIZE);
+	if (!rng_pool) {
+		EMSG("IMEM RNG POOL region not mapped (phys 0x%lx)",
+		     (unsigned long)RNG_POOL_BASE);
+		return TEE_ERROR_GENERIC;
+	}
+
+	for (i = 0; i < len; i++) {
+		uint32_t idx = atomic_inc32(&offset);
+		size_t src_idx = (idx - 1) % RNG_POOL_SIZE;
+
+		output[i] = rng_pool[src_idx];
+		rng_pool[src_idx] = (uint8_t)(0xBEEFCAFEU >>
+					     ((src_idx % 4) * 8));
+	}
+
+	return TEE_SUCCESS;
+}
 
 /* TME Status codes */
 #define TME_STATUS_SUCCESS		0
@@ -38,7 +75,7 @@ static TEE_Result tme_status_to_tee_result(uint32_t tme_status)
 	}
 }
 
-TEE_Result tme_rng_get_data(void *buf, size_t len)
+static TEE_Result tme_rng_get_data(void *buf, size_t len)
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct tme_rng_get_msg msg = { };
@@ -143,36 +180,13 @@ TEE_Result tme_hw_get_random_bytes(void *buf, size_t len)
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	/*
-	 * With native interrupts masked, when RNG requests occur during the
-	 * normal world exit path where TMEL IPC is not functional. A fallback
-	 * RNG is used, sourcing data from a memory region populated by U-Boot
-	 * SPL to support stack canary generation.
+	 * Use bootloader RNG pool when TMEL is bypassed or interrupts
+	 * are masked. This ensures RNG always succeeds for boot-critical
+	 * operations.
 	 */
-	if (thread_get_exceptions() & THREAD_EXCP_NATIVE_INTR) {
-		static size_t offset;
-		uint8_t *rng_pool =
-			(uint8_t *)phys_to_virt(RNG_POOL_BASE,
-						MEM_AREA_IO_SEC,
-						RNG_POOL_SIZE);
-		size_t i;
-
-		if (!rng_pool) {
-			EMSG("IMEM RNG POOL region not mapped (phys 0x%lx)",
-			     (unsigned long)RNG_POOL_BASE);
-			return TEE_ERROR_GENERIC;
-		}
-
-		for (i = 0; i < len; i++) {
-			size_t src_idx = offset % RNG_POOL_SIZE;
-
-			output[i] = rng_pool[src_idx];
-			rng_pool[src_idx] = (uint8_t)(0xBEEFCAFEU >>
-						     ((src_idx % 4) * 8));
-			offset++;
-		}
-
-		return TEE_SUCCESS;
-	}
+	if (tmecom_is_tmel_bypassed() ||
+	    (thread_get_exceptions() & THREAD_EXCP_NATIVE_INTR))
+		return get_bootloader_rng_pool(buf, len);
 
 	while (filled < len) {
 		size_t chunk = len - filled;
