@@ -4,7 +4,7 @@
 #
 
 # Add platform-specific include path
-global-incdirs-y += $(PLATFORM_FLAVOR)
+global-incdirs-y += $(patsubst %_lm,%,$(PLATFORM_FLAVOR))
 
 # QFPROM driver source files
 srcs-y += qfprom_core.c

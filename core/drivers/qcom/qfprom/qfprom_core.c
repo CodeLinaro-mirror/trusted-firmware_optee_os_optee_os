@@ -85,9 +85,7 @@ TEE_Result qfprom_write_row(uint32_t row_address, uint32_t lsb_val,
 }
 
 /* Write TME OEM MRC state vector fuse */
-TEE_Result
-qfprom_write_tme_oem_mrc_state_vector(uint32_t raw_row_address __unused,
-				      uint32_t *row_data)
+TEE_Result qfprom_write_tme_oem_mrc(uint32_t *row_data)
 {
 	TEE_Result res = TEE_SUCCESS;
 	uint32_t act_vector = 0;
@@ -103,8 +101,6 @@ qfprom_write_tme_oem_mrc_state_vector(uint32_t raw_row_address __unused,
 	rev_vector = (row_data[0] >> TME_OEM_MRC_ACTIVATION_VECTOR_BITS) &
 		     TME_OEM_MRC_REVOCATION_VECTOR_MASK;
 
-	IMSG("MRC state update: act=0x%x, rev=0x%x", act_vector, rev_vector);
-
 	/* Send MRC state update request to TME via TME fuse client */
 	res = tmel_qfprom_oem_mrc_state_update(act_vector, rev_vector);
 	if (res != TEE_SUCCESS) {
@@ -112,6 +108,5 @@ qfprom_write_tme_oem_mrc_state_vector(uint32_t raw_row_address __unused,
 		return res;
 	}
 
-	IMSG("MRC state vector updated successfully");
 	return TEE_SUCCESS;
 }

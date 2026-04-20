@@ -106,7 +106,10 @@ TEE_Result tmel_secure_auth_v2(struct tmel_sec_auth_v2_req *params)
 TEE_Result tmel_secure_auth(struct tmel_sec_auth_params *params)
 {
 	TEE_Result res;
-	struct tmel_sec_auth_v2_req auth_req;
+	union {
+		struct tmel_sec_auth_v1_req v1;
+		struct tmel_sec_auth_v2_req v2;
+	} auth_req;
 
 	if (!params) {
 		EMSG("Invalid params pointer");
@@ -120,36 +123,37 @@ TEE_Result tmel_secure_auth(struct tmel_sec_auth_params *params)
 
 	memset(&auth_req, 0, sizeof(auth_req));
 
-	auth_req.sw_id = params->sw_id;
-	auth_req.elf_buf = params->elf_buf;
-	auth_req.region_list = params->region_list;
-	auth_req.relocate = params->relocate;
+	/* Assign common fields to v1 (works for both v1 and v2 due to union) */
+	auth_req.v1.sw_id = params->sw_id;
+	auth_req.v1.elf_buf = params->elf_buf;
+	auth_req.v1.region_list = params->region_list;
+	auth_req.v1.relocate = params->relocate;
 
 	if (tme_auth_version == 1) {
-		dcache_clean_range(&auth_req,
-				   sizeof(struct tmel_sec_auth_v1_req));
-		res = tmel_secure_auth_v1((struct tmel_sec_auth_v1_req *)
-					  &auth_req);
+		dcache_clean_range(&auth_req.v1, sizeof(auth_req.v1));
+		res = tmel_secure_auth_v1(&auth_req.v1);
 	} else if (tme_auth_version == 2) {
-		auth_req.nsIntegrityCheck = params->nsIntegrityCheck;
-		auth_req.reservedBits = 0;
-		auth_req.reservedBuf = params->reservedBuf;
+		/* Assign v2-specific input fields */
+		auth_req.v2.nsIntegrityCheck = params->nsIntegrityCheck;
+		auth_req.v2.reservedBits = 0;
+		auth_req.v2.reservedBuf = params->reservedBuf;
 
-		dcache_clean_range(&auth_req, sizeof(auth_req));
-		res = tmel_secure_auth_v2(&auth_req);
+		dcache_clean_range(&auth_req.v2, sizeof(auth_req.v2));
+		res = tmel_secure_auth_v2(&auth_req.v2);
+
+		/* Copy v2-specific output field */
+		params->keyHandle = auth_req.v2.keyHandle;
 	} else {
 		EMSG("Unsupported TME auth version: %u", tme_auth_version);
 		return TEE_ERROR_GENERIC;
 	}
 
-	params->first_seg_addr = auth_req.first_seg_addr;
-	params->first_seg_len = auth_req.first_seg_len;
-	params->entry_addr = auth_req.entry_addr;
-	params->extended_error = auth_req.extended_error;
-	params->status = auth_req.status;
-
-	if (tme_auth_version == 2)
-		params->keyHandle = auth_req.keyHandle;
+	/* Copy common output fields (same position in both v1 and v2) */
+	params->first_seg_addr = auth_req.v1.first_seg_addr;
+	params->first_seg_len = auth_req.v1.first_seg_len;
+	params->entry_addr = auth_req.v1.entry_addr;
+	params->extended_error = auth_req.v1.extended_error;
+	params->status = auth_req.v1.status;
 
 	return res;
 }

@@ -155,11 +155,7 @@ blow_fuse_region(enum fuseprov_category_type category,
 			row_data[0] = lsb_val;
 			row_data[1] = msb_val;
 
-			IMSG("Writing MRC state vector at 0x%08x",
-			     entries[i].fuse_addr);
-
-			res = qfprom_write_tme_oem_mrc_state_vector(entries[i].fuse_addr,
-								    row_data);
+			res = qfprom_write_tme_oem_mrc(row_data);
 			if (res != TEE_SUCCESS) {
 				EMSG("MRC vector write failed 0x%08x: %#"PRIx32,
 				     entries[i].fuse_addr, res);
@@ -314,6 +310,9 @@ prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 	bool dynamic_mapping_created = false;
 	paddr_t elf_paddr = 0;
 	paddr_t regions_paddr = 0;
+#ifdef CFG_QCOM_TMEL_AUTH
+	struct tmel_sec_auth_params auth_params;
+#endif
 
 	if (!regions || region_count == 0) {
 		EMSG("No region list provided");
@@ -414,9 +413,6 @@ prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 		}
 	}
 #ifdef CFG_QCOM_TMEL_AUTH
-	/* Use unified TME authentication interface */
-	struct tmel_sec_auth_params auth_params;
-
 	memset(&auth_params, 0, sizeof(auth_params));
 
 	auth_params.sw_id = SECELF_SW_ID;
@@ -444,7 +440,7 @@ prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 		EMSG("Elf authentication FAILED: 0x%08x", res);
 		goto cleanup;
 	}
-	IMSG("ELF authentication SUCCESSFUL!");
+	DMSG("ELF authentication SUCCESSFUL!");
 #endif
 	res = prov_qfprom_fuses(sec_dat_addr, sec_dat_size);
 

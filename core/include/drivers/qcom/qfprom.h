@@ -101,7 +101,6 @@ TEE_Result prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 				       struct TmeRegion_t *regions,
 				       uint32_t region_count);
 
-TEE_Result qfprom_write_tme_oem_mrc_state_vector(uint32_t raw_row_address,
-						 uint32_t *row_data);
+TEE_Result qfprom_write_tme_oem_mrc(uint32_t *row_data);
 
 #endif /* __DRIVERS_QFPROM_H */
