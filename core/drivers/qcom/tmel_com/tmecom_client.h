@@ -22,10 +22,14 @@ struct tmel_buf_desc {
 	uint32_t buf_len;
 };
 
-/* Region structure for relocation feature */
-struct TmeRegion_t {
-	uint32_t startAddr;
-	uint32_t endAddr;
+struct mem_region_64 {
+	uint64_t start_addr;
+	uint64_t end_addr;
+} __packed;
+
+struct mem_region {
+	uint32_t start_addr;
+	uint32_t end_addr;
 } __packed;
 
 /*
@@ -67,10 +71,6 @@ struct tmecom_callback_data {
  */
 typedef void (*tmecom_notify_rx_callback_t)(enum tmecom_response response,
 					    struct tmecom_callback_data *data);
-
-/*
- * Public API Functions
- */
 
 /*
  * Initialize TME COM session

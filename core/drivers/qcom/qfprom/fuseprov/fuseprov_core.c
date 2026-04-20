@@ -7,7 +7,6 @@
 #include <kernel/cache_helpers.h>
 #include <mm/core_memprot.h>
 #include <mm/core_mmu.h>
-#include <mm/tee_mm.h>
 #include <qfprom_target.h>
 #include <string.h>
 #include <tee_api.h>
@@ -35,10 +34,8 @@ static uint32_t calculate_fec_bits(uint32_t lsb_data, uint32_t msb_data)
 	uint64_t data = 0;
 	int i = 0;
 
-	/* Combine LSB and MSB into 56-bit data value */
 	data = ((uint64_t)msb_data << 32) | lsb_data;
 
-	/* Run LFSR for 56 bits */
 	for (i = 0; i < 56; i++) {
 		temp = lfsr[0] ^ ((data >> i) & 0x1);
 
@@ -51,11 +48,9 @@ static uint32_t calculate_fec_bits(uint32_t lsb_data, uint32_t msb_data)
 		lfsr[6] = temp;
 	}
 
-	/* Combine FEC bits into a single value */
 	for (i = 6; i >= 0; i--)
 		fec_val |= (lfsr[i] << i);
 
-	/* Place FEC bits in bits [63:56] and combine with data bits [55:32] */
 	return (fec_val << 24) | msb_data;
 }
 
@@ -63,7 +58,6 @@ static bool is_fec_enabled_for_row(uint32_t row_addr)
 {
 	uint32_t i = 0;
 
-	/* Check if address falls within any FEC-enabled range */
 	for (i = 0; i < FEC_NUM_RANGES; i++) {
 		if (row_addr >= fec_enabled_ranges[i].start_addr &&
 		    row_addr <= fec_enabled_ranges[i].end_addr)
@@ -192,7 +186,6 @@ blow_fuse_region(enum fuseprov_category_type category,
 	uint32_t lsb_val, msb_val;
 	bool fec_enabled;
 
-	/* OEM product seed is handled separately */
 	if (category == FUSEPROV_CATEGORY_OEM_PRODUCT_SEED)
 		return blow_oem_product_seed_region(entries, num_entries);
 
@@ -207,7 +200,6 @@ blow_fuse_region(enum fuseprov_category_type category,
 		lsb_val = entries[i].lsb_val;
 		msb_val = entries[i].msb_val;
 
-		/* Check if this is the TME OEM MRC state vector fuse */
 		if (entries[i].fuse_addr == TMEL_OEMMRCSTATEVECTOR_ADDR) {
 			row_data[0] = lsb_val;
 			row_data[1] = msb_val;
@@ -352,140 +344,109 @@ TEE_Result prov_qfprom_fuses(vaddr_t sec_dat_addr, uint32_t sec_dat_size)
 TEE_Result
 prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 			    uint32_t elf_metadata_size,
-			    struct TmeRegion_t *regions,
+			    struct mem_region_64 *regions,
 			    uint32_t region_count)
 {
 	TEE_Result res = TEE_SUCCESS;
-	vaddr_t sec_dat_addr = 0;
 	uint32_t sec_dat_size = 0;
-	paddr_t sec_dat_paddr;
-	paddr_t sec_dat_paddr_aligned = 0;
-	size_t page_offset = 0;
-	void *sec_dat_vaddr_mapped = NULL;
-	tee_mm_entry_t *mm = NULL;
-	size_t num_pages = 0;
-	bool dynamic_mapping_created = false;
-	paddr_t elf_paddr = 0;
-	paddr_t regions_paddr = 0;
+	struct io_pa_va sec_dat = { };
+	struct io_pa_va elf = { };
+	struct io_pa_va region_io = { };
+	struct io_pa_va sec_dat_copy = { };
 #ifdef CFG_QCOM_TMEL_AUTH
 	struct tmel_sec_auth_params auth_params;
 #endif
 
-	if (!regions || region_count == 0) {
-		EMSG("No region list provided");
+	if (!regions || region_count != 1) {
+		EMSG("Exactly one region must be provided, got %"PRIu32,
+		     region_count);
 		return TEE_ERROR_BAD_PARAMETERS;
 	}
 
-	sec_dat_paddr = regions[0].startAddr;
+	sec_dat.pa = regions[0].start_addr;
 
-	if (regions[0].endAddr <= regions[0].startAddr) {
-		EMSG("Invalid region: endAddr (0x%x) <= startAddr (0x%x)",
-		     regions[0].endAddr, regions[0].startAddr);
+	if (regions[0].end_addr <= regions[0].start_addr) {
+		EMSG("Invalid region: end_addr (0x%"PRIx64") <= start_addr (0x%"PRIx64")",
+		     regions[0].end_addr, regions[0].start_addr);
+		return TEE_ERROR_BAD_PARAMETERS;
+	}
+
+	sec_dat_size = regions[0].end_addr - regions[0].start_addr;
+
+	sec_dat.va = (vaddr_t)core_mmu_add_mapping(MEM_AREA_RAM_NSEC,
+							   sec_dat.pa,
+							   sec_dat_size);
+	if (!sec_dat.va) {
+		EMSG("Failed to map sec_dat paddr 0x%"PRIxPA, sec_dat.pa);
+		res = TEE_ERROR_GENERIC;
+		goto cleanup;
+	}
+
+	/* Invalidate cache for sec_dat to avoid stale data after mapping */
+	dcache_inv_range((void *)sec_dat.va, sec_dat_size);
+
+	/*
+	 * Copy sec_dat to internal buffer (security + TME-L compatibility).
+	 * This buffer is guaranteed to be in 32-bit addressable memory.
+	 */
+	sec_dat_copy.va = (vaddr_t)malloc(sec_dat_size);
+	if (!sec_dat_copy.va) {
+		EMSG("Failed to allocate internal buffer for sec_dat");
+		res = TEE_ERROR_OUT_OF_MEMORY;
+		goto cleanup;
+	}
+
+	memcpy((void *)sec_dat_copy.va, (void *)sec_dat.va,
+	       sec_dat_size);
+	dcache_clean_range((void *)sec_dat_copy.va, sec_dat_size);
+
+	/* Release the temporary mapping immediately after copy */
+	core_mmu_remove_mapping(MEM_AREA_RAM_NSEC,
+				(void *)sec_dat.va, sec_dat_size);
+	sec_dat.va = 0;
+
+	sec_dat_copy.pa = virt_to_phys((void *)sec_dat_copy.va);
+	if (!sec_dat_copy.pa) {
+		EMSG("Failed to convert sec_dat buffer VA to PA");
 		res = TEE_ERROR_BAD_PARAMETERS;
 		goto cleanup;
 	}
 
-	sec_dat_size = regions[0].endAddr - regions[0].startAddr;
-
-	if (sec_dat_size == 0) {
-		EMSG("Invalid sec_dat size: 0x%x (must be non-zero)",
-		     sec_dat_size);
-		res = TEE_ERROR_BAD_PARAMETERS;
+	region_io.va = (vaddr_t)malloc(sizeof(struct mem_region));
+	if (!region_io.va) {
+		EMSG("Failed to allocate region structure");
+		res = TEE_ERROR_OUT_OF_MEMORY;
 		goto cleanup;
 	}
 
-	/* Check for overflow in ROUNDUP calculation */
-	if (sec_dat_size > (UINT32_MAX - SMALL_PAGE_SIZE + 1)) {
-		EMSG("sec_dat_size too large, would overflow in ROUNDUP");
-		res = TEE_ERROR_BAD_PARAMETERS;
-		goto cleanup;
-	}
+	((struct mem_region *)region_io.va)->start_addr =
+		(uint32_t)sec_dat_copy.pa;
+	((struct mem_region *)region_io.va)->end_addr =
+		(uint32_t)sec_dat_copy.pa + sec_dat_size;
+	dcache_clean_range((void *)region_io.va, sizeof(struct mem_region));
 
-	/* Calculate page offset and aligned physical address */
-	page_offset = sec_dat_paddr & SMALL_PAGE_MASK;
-	sec_dat_paddr_aligned = ROUNDDOWN(sec_dat_paddr, SMALL_PAGE_SIZE);
-	num_pages = ROUNDUP(sec_dat_size + page_offset, SMALL_PAGE_SIZE) /
-		    SMALL_PAGE_SIZE;
+	region_io.pa = virt_to_phys((void *)region_io.va);
 
-	/* Try to map using phys_to_virt first (if already mapped) */
-	sec_dat_vaddr_mapped = phys_to_virt(sec_dat_paddr, MEM_AREA_RAM_NSEC,
-					    sec_dat_size);
-
-	if (!sec_dat_vaddr_mapped) {
-		/* Allocate VA space from core_virt_shm_pool */
-		mm = tee_mm_alloc(&core_virt_shm_pool,
-				  num_pages * SMALL_PAGE_SIZE);
-		if (!mm) {
-			EMSG("Failed to allocate VA space for 0x%08lx",
-			     (unsigned long)sec_dat_paddr);
-			res = TEE_ERROR_OUT_OF_MEMORY;
-			goto cleanup;
-		}
-
-		/* Map the physical pages to the allocated VA space */
-		res = core_mmu_map_contiguous_pages(tee_mm_get_smem(mm),
-						    sec_dat_paddr_aligned,
-						    num_pages,
-						    MEM_AREA_RAM_NSEC);
-		if (res != TEE_SUCCESS) {
-			EMSG("Failed to map pages for 0x%08lx: %#"PRIx32,
-			     (unsigned long)sec_dat_paddr, res);
-			tee_mm_free(mm);
-			mm = NULL;
-			goto cleanup;
-		}
-
-		/* Calculate the actual virtual address with page offset */
-		sec_dat_vaddr_mapped = (void *)(tee_mm_get_smem(mm) +
-						page_offset);
-		dynamic_mapping_created = true;
-	}
-
-	sec_dat_addr = (vaddr_t)sec_dat_vaddr_mapped;
-
-	/* Invalidate cache for sec_dat to avoid stale data after remapping. */
-	dcache_inv_range((void *)sec_dat_addr, sec_dat_size);
-
-	elf_paddr = virt_to_phys((void *)elf_vaddr);
-	if (!elf_paddr) {
-		EMSG("Failed to convert ELF vaddr 0x%08lx to paddr",
-		     (unsigned long)elf_vaddr);
+	elf.pa = virt_to_phys((void *)elf_vaddr);
+	if (!elf.pa) {
+		EMSG("Failed to convert ELF vaddr 0x%"PRIxVA" to paddr",
+		     elf_vaddr);
 		res = TEE_ERROR_BAD_PARAMETERS;
 		goto cleanup;
 	}
 
 	dcache_clean_range((void *)elf_vaddr, elf_metadata_size);
 
-	if (regions && region_count > 0) {
-		uint32_t regions_size =
-			region_count * sizeof(struct TmeRegion_t);
-
-		dcache_clean_range(regions, regions_size);
-
-		regions_paddr = virt_to_phys(regions);
-		if (!regions_paddr) {
-			EMSG("Failed to convert regions vaddr to paddr");
-			res = TEE_ERROR_BAD_PARAMETERS;
-			goto cleanup;
-		}
-	}
 #ifdef CFG_QCOM_TMEL_AUTH
 	memset(&auth_params, 0, sizeof(auth_params));
 
 	auth_params.sw_id = SECELF_SW_ID;
-	auth_params.elf_buf.buf = (uint32_t)elf_paddr;
+	auth_params.elf_buf.buf = (uint32_t)elf.pa;
 	auth_params.elf_buf.buf_len = elf_metadata_size;
 
-	if (regions && region_count > 0) {
-		auth_params.region_list.buf = (uint32_t)regions_paddr;
-		auth_params.region_list.buf_len =
-			region_count * sizeof(struct TmeRegion_t);
-		auth_params.relocate = 1;
-	} else {
-		auth_params.region_list.buf = 0;
-		auth_params.region_list.buf_len = 0;
-		auth_params.relocate = 0;
-	}
+	auth_params.region_list.buf = (uint32_t)region_io.pa;
+	auth_params.region_list.buf_len = sizeof(struct mem_region);
+	auth_params.relocate = 1;
 
 	auth_params.nsIntegrityCheck = 1;
 	auth_params.reservedBuf.buf = 0;
@@ -494,12 +455,12 @@ prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 	res = tmel_secure_auth(&auth_params);
 
 	if (res != TEE_SUCCESS) {
-		EMSG("Elf authentication FAILED: 0x%08x", res);
+		EMSG("ELF authentication FAILED: 0x%08x", res);
 		goto cleanup;
 	}
 	DMSG("ELF authentication SUCCESSFUL!");
 #endif
-	res = prov_qfprom_fuses(sec_dat_addr, sec_dat_size);
+	res = prov_qfprom_fuses(sec_dat_copy.va, sec_dat_size);
 
 	if (res != TEE_SUCCESS) {
 		EMSG("Fuse provisioning FAILED: 0x%08x", res);
@@ -509,11 +470,16 @@ prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 	IMSG("Fuse provisioning completed successfully!");
 
 cleanup:
-	if (dynamic_mapping_created && mm) {
-		core_mmu_unmap_pages(tee_mm_get_smem(mm),
-				     num_pages);
-		tee_mm_free(mm);
-	}
+	if (sec_dat.va)
+		core_mmu_remove_mapping(MEM_AREA_RAM_NSEC,
+					(void *)sec_dat.va,
+					sec_dat_size);
+
+	if (region_io.va)
+		free((void *)region_io.va);
+
+	if (sec_dat_copy.va)
+		free((void *)sec_dat_copy.va);
 
 	return res;
 }

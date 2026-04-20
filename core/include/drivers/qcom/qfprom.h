@@ -20,9 +20,6 @@
 
 #define QFPROM_CORR_ADDR_OFFSET				0x4000
 
-/*
- * Fuse Region Types
- */
 enum fuseprov_v3_region_etype {
 	FUSEPROV_V3_REGION_TYPE_OEM_SEC_BOOT     = 0x00000000,
 	FUSEPROV_V3_REGION_TYPE_OEM_PK_HASH      = 0x00000001,
@@ -43,9 +40,6 @@ enum fuseprov_v3_region_etype {
 	FUSEPROV_V3_REGION_TYPE_MAX              = 0x00000010,
 };
 
-/*
- * Fuse Categories order
- */
 enum fuseprov_category_type {
 	FUSEPROV_CATEGORY_GENERAL,
 	FUSEPROV_CATEGORY_SHK,
@@ -77,18 +71,6 @@ struct fuseprov_qfuse_entry {
 	uint32_t operation_type;
 };
 
-/*
- * FEC-enabled fuse range structure
- */
-struct fec_fuse_range {
-	uint32_t start_addr;
-	uint32_t end_addr;
-};
-
-/*
- * QFPROM Core Functions
- */
-
 TEE_Result qfprom_read_row(uint32_t row_address, bool corrected,
 			   uint32_t *lsb_val, uint32_t *msb_val);
 
@@ -102,7 +84,7 @@ TEE_Result prov_qfprom_fuses(vaddr_t sec_dat_addr, uint32_t sec_dat_size);
 
 TEE_Result prov_qfprom_fuses_with_auth(vaddr_t elf_vaddr,
 				       uint32_t elf_metadata_size,
-				       struct TmeRegion_t *regions,
+				       struct mem_region_64 *regions,
 				       uint32_t region_count);
 
 TEE_Result qfprom_write_tme_oem_mrc(uint32_t *row_data);

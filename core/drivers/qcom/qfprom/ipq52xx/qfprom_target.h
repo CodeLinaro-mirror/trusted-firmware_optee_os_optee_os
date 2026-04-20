@@ -31,7 +31,7 @@
 /*
  * FEC-enabled fuse ranges
  */
-static const struct fec_fuse_range fec_enabled_ranges[] = {
+static const struct mem_region fec_enabled_ranges[] = {
 	/* TME OEM MRC Hash region */
 	{ HWIO_QFPROM_RAW_TME_OEM_MRC_HASH_ROW0_LSB_ADDR,
 	  HWIO_QFPROM_RAW_TME_OEM_MRC_HASH_ROW9_LSB_ADDR },
