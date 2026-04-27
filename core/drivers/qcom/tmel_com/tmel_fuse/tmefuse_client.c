@@ -13,7 +13,8 @@
  * Reads multiple fuse values from TME secure storage.
  * Sends fuse read request to TME and retrieves fuse data.
  */
-TEE_Result tmel_qfprom_fuselist_read(struct tme_fuse_payload *fuse, size_t size)
+TEE_Result tmel_fuse_read_multiple_rows(struct tme_fuse_payload *fuse,
+					size_t size)
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct tme_fuse_read_multiple_msg msg = { };
@@ -38,19 +39,14 @@ TEE_Result tmel_qfprom_fuselist_read(struct tme_fuse_payload *fuse, size_t size)
 			 NULL,
 			 NULL);
 
-	if (ret != TEE_SUCCESS) {
-		EMSG("Tmecom send message failed: 0x%x", ret);
-		return ret;
-	}
-
-	return TEE_SUCCESS;
+	return ret;
 }
 
 /*
  * Write single fuse row to TME
  */
-TEE_Result tmel_qfprom_fuselist_write(struct tme_fuse_payload *fuse,
-				      size_t size)
+TEE_Result tmel_fuse_write_row(struct tme_fuse_payload *fuse,
+			       size_t size)
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct {
@@ -63,7 +59,6 @@ TEE_Result tmel_qfprom_fuselist_write(struct tme_fuse_payload *fuse,
 	if (!fuse || !size)
 		return TEE_ERROR_BAD_PARAMETERS;
 
-	/* Set up the message for single fuse write */
 	msg.fuse_addr = fuse->fuse_addr;
 	msg.lsb_val = fuse->lsb_val;
 	msg.msb_val = fuse->msb_val;
@@ -80,20 +75,14 @@ TEE_Result tmel_qfprom_fuselist_write(struct tme_fuse_payload *fuse,
 			 NULL,
 			 NULL);
 
-	if (ret != TEE_SUCCESS) {
-		EMSG("Tmecom send message failed: 0x%x", ret);
-		return ret;
-	}
-
-	return TEE_SUCCESS;
+	return ret;
 }
 
 /*
  * Update TME OEM MRC state vector
  */
-TEE_Result
-tmel_qfprom_oem_mrc_state_update(uint32_t activate_vector,
-				 uint32_t revocate_vector)
+TEE_Result tmel_oem_mrc_state_update(uint32_t activate_vector,
+				     uint32_t revocate_vector)
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct {
@@ -102,7 +91,6 @@ tmel_qfprom_oem_mrc_state_update(uint32_t activate_vector,
 		uint32_t status;
 	} msg = { 0 };
 
-	/* Prepare MRC state update message */
 	msg.activate_vector = activate_vector;
 	msg.revocate_vector = revocate_vector;
 	msg.status = TEE_SUCCESS;
@@ -119,10 +107,47 @@ tmel_qfprom_oem_mrc_state_update(uint32_t activate_vector,
 			 NULL,
 			 NULL);
 
-	if (ret != TEE_SUCCESS) {
-		EMSG("TME MRC state update failed: 0x%x", ret);
-		return ret;
-	}
+	return ret;
+}
 
-	return TEE_SUCCESS;
+/*
+ * Write multiple fuse rows to TME
+ */
+TEE_Result tmel_fuse_write_multiple_rows(struct tme_fuse_payload *fuse,
+					 uint32_t num_rows)
+{
+	TEE_Result ret = TEE_ERROR_GENERIC;
+	struct {
+		uint32_t status;
+		uint32_t p_buffer;
+		uint32_t buf_len;
+	} msg = { 0 };
+	paddr_t fuse_paddr = 0;
+	size_t buffer_size = 0;
+
+	if (!fuse || !num_rows)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	buffer_size = num_rows * sizeof(struct tme_fuse_payload);
+	fuse_paddr = virt_to_phys(fuse);
+
+	if (!fuse_paddr)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	msg.p_buffer = (uint32_t)fuse_paddr;
+	msg.buf_len = buffer_size;
+
+	/* Send fuse write multiple rows request to TME */
+	ret = tmecom_client_send_message
+			(TME_MSG_UID_FUSE_WRITE_MULTIPLE_ROW,
+			 TME_MSG_UID_FUSE_WRITE_MULTIPLE_ROW_PARAM_ID,
+			 true,
+			 TMECOM_DEFAULT_TIMEOUT,
+			 &msg,
+			 sizeof(msg),
+			 NULL,
+			 NULL,
+			 NULL);
+
+	return ret;
 }

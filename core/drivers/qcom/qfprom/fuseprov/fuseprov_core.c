@@ -123,10 +123,63 @@ get_fuse_category_for_region(uint32_t region_type)
 }
 
 /*
+ * blow_oem_product_seed_region - Blow OEM product seed fuses using
+ * multiple write.
+ *
+ * OEM product seed must be written using multiple write API with all 5 rows.
+ * Single write is not allowed for OEM product seed as it is fuse protection
+ * enabled in TME-L
+ */
+#define OEM_PRODUCT_SEED_ROWS 5
+
+static TEE_Result
+blow_oem_product_seed_region(const struct fuseprov_qfuse_entry *entries,
+			     uint32_t num_entries)
+{
+	TEE_Result res = TEE_SUCCESS;
+	struct tme_fuse_payload fuse_rows[OEM_PRODUCT_SEED_ROWS] = { 0 };
+	uint32_t row_count = 0;
+	uint32_t i = 0;
+
+	for (i = 0; i < num_entries; i++) {
+		if (get_fuse_category_for_region(entries[i].region_type) !=
+		    FUSEPROV_CATEGORY_OEM_PRODUCT_SEED)
+			continue;
+
+		if (row_count >= OEM_PRODUCT_SEED_ROWS) {
+			EMSG("OEM product seed: Too many entries");
+			return TEE_ERROR_BAD_FORMAT;
+		}
+
+		fuse_rows[row_count].fuse_addr = entries[i].fuse_addr;
+		fuse_rows[row_count].lsb_val = entries[i].lsb_val;
+		fuse_rows[row_count].msb_val = entries[i].msb_val;
+		row_count++;
+	}
+
+	if (row_count == 0)
+		return TEE_SUCCESS;
+
+	if (row_count != OEM_PRODUCT_SEED_ROWS) {
+		EMSG("OEM product seed: Insufficient entries");
+		return TEE_ERROR_BAD_FORMAT;
+	}
+
+	res = qfprom_write_multiple_rows(fuse_rows, row_count);
+	if (res != TEE_SUCCESS) {
+		EMSG("Failed to write OEM product seed fuses: %#"PRIx32, res);
+		return res;
+	}
+
+	return TEE_SUCCESS;
+}
+
+/*
  * blow_fuse_region - Blow all fuse entries belonging to a given category.
  *
  * Iterates through all entries and writes those matching the specified
  * category. Applies FEC if enabled for the fuse row.
+ * Note: OEM product seed is handled separately using multiple write API.
  */
 static TEE_Result
 blow_fuse_region(enum fuseprov_category_type category,
@@ -138,6 +191,10 @@ blow_fuse_region(enum fuseprov_category_type category,
 	uint32_t row_data[2];
 	uint32_t lsb_val, msb_val;
 	bool fec_enabled;
+
+	/* OEM product seed is handled separately */
+	if (category == FUSEPROV_CATEGORY_OEM_PRODUCT_SEED)
+		return blow_oem_product_seed_region(entries, num_entries);
 
 	for (i = 0; i < num_entries; i++) {
 		if (get_fuse_category_for_region(entries[i].region_type) !=

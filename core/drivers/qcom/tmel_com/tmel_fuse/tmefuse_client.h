@@ -47,21 +47,18 @@ struct tme_fuse_read_multiple_msg {
  * @size: Size of fuse payload buffer in bytes
  * Return: TEE_SUCCESS on success, TEE_ERROR_* on failure
  */
-TEE_Result tmel_qfprom_fuselist_read(struct tme_fuse_payload *fuse,
-				     size_t size);
+TEE_Result tmel_fuse_read_multiple_rows(struct tme_fuse_payload *fuse,
+					size_t size);
 
 /*
- * Write multiple fuse rows to TME
+ * Write single fuse row to TME
  *
- * The fuse buffer should contain an array of struct tme_fuse_payload
- * structures with fuse_addr, lsb_val, and msb_val fields populated.
- *
- * @fuse: Pointer to fuse payload array
+ * @fuse: Pointer to fuse payload
  * @size: Size of fuse payload buffer in bytes
  * Return: TEE_SUCCESS on success, TEE_ERROR_* on failure
  */
-TEE_Result tmel_qfprom_fuselist_write(struct tme_fuse_payload *fuse,
-				      size_t size);
+TEE_Result tmel_fuse_write_row(struct tme_fuse_payload *fuse,
+			       size_t size);
 
 /*
  * Update TME OEM MRC (Multi-Root of Trust Configuration) state vector
@@ -73,7 +70,17 @@ TEE_Result tmel_qfprom_fuselist_write(struct tme_fuse_payload *fuse,
  * @revocate_vector: MRC revocation vector value
  * Return: TEE_SUCCESS on success, TEE_ERROR_* on failure
  */
-TEE_Result tmel_qfprom_oem_mrc_state_update(uint32_t activate_vector,
-					    uint32_t revocate_vector);
+TEE_Result tmel_oem_mrc_state_update(uint32_t activate_vector,
+				     uint32_t revocate_vector);
+
+/*
+ * Write multiple fuse rows to TME
+ *
+ * @fuse: Pointer to fuse payload array
+ * @num_rows: Number of fuse rows to write
+ * Return: TEE_SUCCESS on success, TEE_ERROR_* on failure
+ */
+TEE_Result tmel_fuse_write_multiple_rows(struct tme_fuse_payload *fuse,
+					 uint32_t num_rows);
 
 #endif /* __TMEFUSE_CLIENT_H */

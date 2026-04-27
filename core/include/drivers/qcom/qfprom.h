@@ -11,6 +11,7 @@
 #include <tee_api_types.h>
 #include <types_ext.h>
 #include <tmel_auth/tmel_auth.h>
+#include <tmefuse_client.h>
 
 #define FUSEPROV_SECDAT_MAGIC1				0x3B7251CA
 #define FUSEPROV_SECDAT_MAGIC2				0x2A126F29
@@ -93,6 +94,9 @@ TEE_Result qfprom_read_row(uint32_t row_address, bool corrected,
 
 TEE_Result qfprom_write_row(uint32_t row_address, uint32_t lsb_val,
 			    uint32_t msb_val);
+
+TEE_Result qfprom_write_multiple_rows(struct tme_fuse_payload *fuse_rows,
+				      uint32_t num_rows);
 
 TEE_Result prov_qfprom_fuses(vaddr_t sec_dat_addr, uint32_t sec_dat_size);
 
