@@ -233,12 +233,13 @@ void boot_primary_init_intc(void)
 {
 #ifdef CFG_ARM_GICV3
 	gic_init_v3(0, GICD_BASE, GICR_BASE);
-#ifdef CFG_QCOM_SEC_WDOG
-	qcom_sec_wdog_init();
-#endif
 #else /* CFG_ARM_GICV2 */
 	gic_init(GICC_BASE, GICD_BASE);
 	register_el3_delegated_interrupts(handle_el3_delegated_interrupt);
+#endif
+#ifdef CFG_QCOM_SEC_WDOG
+	if (qcom_sec_wdog_init() != TEE_SUCCESS)
+		panic("Failed to initialize secure watchdog");
 #endif
 }
 

@@ -42,6 +42,18 @@ CFG_GENI_UART_BASE ?= 0x01a84000
 CFG_DT ?= y
 CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq52xx.dts
 
+# Secure watchdog bark interrupt handler
+CFG_QCOM_SEC_WDOG ?= y
+
+# APSS_WDT_TMR2_BASE base address
+CFG_APSS_WDT_BASE ?= 0x0B117000
+
+# Watchdog register offset
+CFG_WDOG_RESET_REG_OFFSET ?= 0x4
+
+# Secure watchdog bark interrupt ID
+CFG_SEC_WDOG_BARK_INT_ID ?= 0x23
+
 # TME IPC support
 CFG_TME_QMP_IRQ_IN_ID ?= 100u
 CFG_TME_QMP_IRQ_OUT_REG_ADDR ?= 0x0B111004
