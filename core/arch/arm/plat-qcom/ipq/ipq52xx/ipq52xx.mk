@@ -2,34 +2,11 @@ ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq52xx-flavorlist)))
 
 CFG_IPQ52XX ?= y
 
-# Device Tree configuration
-CFG_DT ?= y
-CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq52xx.dts
-
 # Hardware configuration
 # 4 cores (4 Cortex-A53) in a single cluster
 CFG_TEE_CORE_NB_CORE ?= 4
-
-# IPQ52xx GIC(v2) configuration
-CFG_GIC ?= y
-CFG_GIC_BASE ?= 0xB000000
-CFG_GIC_SIZE ?= 0x5000
-CFG_GICD_OFFSET ?= 0x0
-CFG_GICC_OFFSET ?= 0x2000
-
-# Hardware RNG configuration for IPQ52xx (Hermosa)
-CFG_HWRNG_PTA ?= y
-CFG_QRNG_BASE_ADDR ?= 0x004C0000
-CFG_QRNG_EE5_BASE_ADDR ?= 0x004C5000
-
-ifeq ($(CFG_HWRNG_PTA),y)
-$(call force,CFG_WITH_SOFTWARE_PRNG,n)
-$(call force,CFG_QCOM_QRNG,y)
-CFG_HWRNG_QUALITY ?= 1024
-endif
-
+# DDR Memory layout
 CFG_TZDRAM_START ?= 0x87D80000
-
 #IMEM Base address
 CFG_IMEM_BASE ?= 0x8600000
 
@@ -42,6 +19,14 @@ CFG_DRAM0_SIZE ?= 0x80000000
 CFG_DRAM1_BASE ?= 0x800000000
 CFG_DRAM1_SIZE ?= 0x80000000
 
+# GICv2
+CFG_GIC ?= y
+# GIC register base addresses and offsets
+CFG_GIC_BASE    ?= 0xB000000
+CFG_GIC_SIZE    ?= 0x5000
+CFG_GICD_OFFSET ?= 0x0
+CFG_GICC_OFFSET ?= 0x2000
+
 # DIAG logging support
 CFG_QCOM_DIAG_LOG ?= y
 CFG_QCOM_DIAG_BASE ?= 0x8608000
@@ -53,24 +38,67 @@ CFG_QCOM_TCSR_BOOT_MISC_DETECT ?= 0x195C100
 # GENI UART base address
 CFG_GENI_UART_BASE ?= 0x01a84000
 
+# DT
+CFG_DT ?= y
+CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq52xx.dts
+
+# TME IPC support
 CFG_TME_QMP_IRQ_IN_ID ?= 100u
 CFG_TME_QMP_IRQ_OUT_REG_ADDR ?= 0x0B111004
 CFG_TME_QMP_IRQ_OUT_BIT_MASK ?= 0x00200000
 CFG_TME_QMP_INBOUND_MBOX_ADDR ?= 0x32090000
 CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x32091000
-
-# FEATURE_CONFIG2 fuse register - indicates if TMEL is bypassed on this part
 CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
 
+# Hardware RNG configuration
+CFG_HWRNG_PTA ?= y
+
+ifeq ($(CFG_HWRNG_PTA),y)
+$(call force,CFG_WITH_SOFTWARE_PRNG,n)
+CFG_QRNG_BASE_ADDR ?= 0x004C0000
+CFG_QRNG_EE5_BASE_ADDR ?= 0x004C5000
+$(call force,CFG_QCOM_QRNG,y)
+CFG_HWRNG_QUALITY ?= 1024
+endif
+
 ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
-# Serial Number fuse register address (Die ID)
-CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
+# Enable ARM Cryptographic Extensions
+CFG_CRYPTO_WITH_CE ?= y
+
+# TME-L Secure Authentication support
+CFG_QCOM_TMEL_AUTH ?= y
 
 # TCSR Hardware Key Register Configuration
 CFG_TCSR_FUSE_PRI_HW_KEY_BASE_START ?= 0x193D404
 CFG_TCSR_FUSE_PRI_HW_KEY_REG_COUNT ?= 8
 CFG_TCSR_FUSE_SEC_HW_KEY_BASE_START ?= 0x193D424
 CFG_TCSR_FUSE_SEC_HW_KEY_REG_COUNT ?= 8
+
+# Serial Number fuse register address (Die ID)
+CFG_QCOM_SERIAL_NUM_FUSE_ADDR ?= 0xA60A8
+
+# HUK subkey compatibility mode - use actual die ID from OTP
+CFG_CORE_HUK_SUBKEY_COMPAT_USE_OTP_DIE_ID ?= y
+
+# Secure Storage Configuration
+CFG_RPMB_FS ?= n
+
+ifeq ($(CFG_RPMB_FS),y)
+# RPMB Configuration
+CFG_RPMB_FS_DEV_ID ?= 0
+CFG_RPMB_FS_CACHE_ENTRIES ?= 8
+CFG_RPMB_FS_RD_ENTRIES ?= 8
+
+# RPMB protects REE_FS
+CFG_REE_FS_INTEGRITY_RPMB ?= y
+
+# RPMB debugging (disabled for production)
+CFG_RPMB_FS_DEBUG_DATA ?= n
+
+# Never enable in production!
+CFG_RPMB_WRITE_KEY ?= n
+CFG_RPMB_TEST_KEY ?= n
+endif
 
 # ICE (Inline Crypto Engine) configuration
 # SDC1_SDCC_ICE_LUT_KEYS_REG_BASE
@@ -85,8 +113,5 @@ endif
 CFG_QCOM_QFPROM ?= y
 CFG_QFPROM_PTA ?= y
 CFG_QCOM_TMEL_FUSE ?= y
-
-# TME-L Secure Authentication support
-CFG_QCOM_TMEL_AUTH ?= y
 
 endif

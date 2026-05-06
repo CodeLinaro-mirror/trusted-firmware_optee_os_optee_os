@@ -84,7 +84,6 @@ static TEE_Result qrng_wait_for_data(void)
 {
 	uint64_t timeout_expire;
 	uint64_t error_timeout;
-	uint32_t status_val;
 	uint32_t trng_status;
 	uint32_t drbg_error;
 	uint32_t timer_status;

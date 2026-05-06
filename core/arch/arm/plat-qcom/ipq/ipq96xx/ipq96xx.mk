@@ -8,7 +8,7 @@ CFG_TEE_CORE_NB_CORE ?= 5
 # Use log2(8)=3 to accommodate all 5 cores in the cluster
 CFG_CORE_CLUSTER_SHIFT ?= 3
 
-# IPQ96xx-specific memory layout
+# DDR Memory layout
 CFG_TZDRAM_START ?= 0x8A680000
 #IMEM Base address
 CFG_IMEM_BASE ?= 0x8600000
@@ -45,7 +45,6 @@ CFG_GENI_UART_BASE ?= 0x01A98000
 
 # REMOTEPROC for TURING SS
 CFG_QCOM_PAS_PTA ?= y
-CFG_DEVICE_ENUM_PTA ?= y
 
 # GCC
 CFG_DRIVERS_CLK ?= y
@@ -53,8 +52,9 @@ CFG_DRIVERS_QCOM_CLK ?= y
 
 # DT
 CFG_DT ?= y
-CFG_DRIVERS_CLK_DT ?= y
 CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq96xx.dts
+CFG_DRIVERS_CLK_DT ?= y
+
 # Secure watchdog bark interrupt handler
 CFG_QCOM_SEC_WDOG ?= y
 
@@ -75,7 +75,7 @@ CFG_TME_QMP_INBOUND_MBOX_ADDR ?= 0x22090000
 CFG_TME_QMP_OUTBOUND_MBOX_ADDR ?= 0x22091000
 CFG_QCOM_FEATURE_CONFIG2_ADDR ?= 0xA600C
 
-# Hardware RNG configuration for IPQ96xx
+# Hardware RNG configuration
 CFG_HWRNG_PTA ?= y
 
 ifeq ($(CFG_HWRNG_PTA),y)
@@ -87,9 +87,6 @@ endif
 ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
 # Enable ARM Cryptographic Extensions
 CFG_CRYPTO_WITH_CE ?= y
-
-# Enable VFP context preservation (required for ARM CE)
-CFG_WITH_VFP ?= y
 
 # TME-L Secure Authentication support
 CFG_QCOM_TMEL_AUTH ?= y

@@ -2,17 +2,12 @@ ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq54xx-flavorlist)))
 
 CFG_IPQ54XX ?= y
 
-# Device Tree configuration
-CFG_DT ?= y
-CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq54xx.dts
-
 # Hardware configuration
 # 4 cores (4 Cortex-A55) in a single cluster
 CFG_TEE_CORE_NB_CORE ?= 4
 
-# IPQ54xx-specific memory layout
+# DDR Memory layout
 CFG_TZDRAM_START ?= 0x89E00000
-
 #IMEM Base address
 CFG_IMEM_BASE ?= 0x8600000
 
@@ -46,6 +41,10 @@ CFG_QCOM_TCSR_BOOT_MISC_DETECT ?= 0x195C100
 # GENI UART base address
 CFG_GENI_UART_BASE ?= 0x01a84000
 
+# DT
+CFG_DT ?= y
+CFG_EMBED_DTB_SOURCE_FILE ?= qcom-ipq54xx.dts
+
 # Secure watchdog bark interrupt handler
 CFG_QCOM_SEC_WDOG ?= y
 
@@ -70,8 +69,8 @@ ifeq (,$(findstring _lm,$(PLATFORM_FLAVOR)))
 # Enable ARM Cryptographic Extensions
 CFG_CRYPTO_WITH_CE ?= y
 
-# Enable VFP context preservation (required for ARM CE)
-CFG_WITH_VFP ?= y
+# TME-L Secure Authentication support
+CFG_QCOM_TMEL_AUTH ?= y
 
 # TCSR Hardware Key Register Configuration
 CFG_TCSR_FUSE_PRI_HW_KEY_BASE_START ?= 0x193D404
@@ -118,8 +117,5 @@ endif
 CFG_QCOM_QFPROM ?= y
 CFG_QFPROM_PTA ?= y
 CFG_QCOM_TMEL_FUSE ?= y
-
-# TME-L Secure Authentication support
-CFG_QCOM_TMEL_AUTH ?= y
 
 endif

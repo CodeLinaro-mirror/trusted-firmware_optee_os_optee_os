@@ -13,14 +13,6 @@ CFG_QCOM_GENI_UART ?= y
 # TME IPC support
 CFG_QCOM_TMEL_COM ?= y
 
-# Basic crypto configuration
-CFG_WITH_SOFTWARE_PRNG ?= y
-CFG_CRYPTO ?= y
-# SW RNG requires AES ECB SHA256
-CFG_CRYPTO_AES ?= y
-CFG_CRYPTO_ECB ?= y
-CFG_CRYPTO_SHA256 ?= y
-
 # Disable unnecessary crypto algorithms
 CFG_CRYPTO_DES ?= n
 CFG_CRYPTO_SM4 ?= n
@@ -69,27 +61,11 @@ CFG_IN_TREE_EARLY_TAS :=
 CFG_REE_FS ?= n
 CFG_REE_FS_TA ?= n
 
-# Debug features (enabled for development - can be disabled later for further optimization)
-CFG_TEE_CORE_LOG_LEVEL ?= 4
-CFG_TEE_CORE_DEBUG ?= y
-CFG_DEBUG_INFO ?= y
-CFG_TEE_CORE_TA_TRACE ?= n
-
 # Disable security hardening
 CFG_TA_FLOAT_SUPPORT ?= n
-
-# Disable PTAs
-CFG_DEVICE_ENUM_PTA ?= n
-CFG_SCP03_PTA ?= n
-CFG_APDU_PTA ?= n
-CFG_SCMI_PTA ?= n
-CFG_GP_SOCKETS ?= n
 
 # Disable other features
 CFG_FAULT_MITIGATION ?= n
 CFG_COMPAT_GP10_DES ?= n
 CFG_CORE_HUK_SUBKEY_COMPAT ?= n
 CFG_PREALLOC_RPC_CACHE ?= n
-
-# Single-threaded operation
-CFG_NUM_THREADS ?= 1
