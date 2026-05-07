@@ -289,8 +289,7 @@ static TEE_Result cmd_ice_set_hw_key_ctx(uint32_t param_types,
 	if ((config_data->key_len != ICE_CRYPTO_KEY_SIZE_128 &&
 	     config_data->key_len != ICE_CRYPTO_KEY_SIZE_256) ||
 	    (config_data->alg_mode != ICE_CRYPTO_ALGO_MODE_AES_ECB &&
-	     config_data->alg_mode != ICE_CRYPTO_ALGO_MODE_AES_XTS &&
-	     config_data->alg_mode != ICE_CRYPTO_ALGO_MODE_BITLOCKER) ||
+	     config_data->alg_mode != ICE_CRYPTO_ALGO_MODE_AES_XTS) ||
 	    (config_data->key_mode != ICE_CRYPTO_USE_KEY0_HW_KEY &&
 	     config_data->key_mode != ICE_CRYPTO_USE_KEY1_HW_KEY)) {
 		EMSG("ICE: Invalid parameters");
@@ -303,27 +302,6 @@ static TEE_Result cmd_ice_set_hw_key_ctx(uint32_t param_types,
 		       TCSR_KEYSLOT_ALGO_ALLOWED_SHFT;
 
 	switch (algo_allowed) {
-	case 0xF:
-	case 0x10:
-		if (config_data->alg_mode == ICE_CRYPTO_ALGO_MODE_AES_XTS) {
-			if (config_data->key_len == ICE_CRYPTO_KEY_SIZE_128)
-				capidx_val = 0x0;
-			else
-				capidx_val = 0x3;
-		} else {
-			EMSG("ICE: Algorithm mode mismatch");
-			return TEE_ERROR_BAD_PARAMETERS;
-		}
-		break;
-	case 0x4:
-		if (!(config_data->key_len == ICE_CRYPTO_KEY_SIZE_128 &&
-		      config_data->alg_mode ==
-		      ICE_CRYPTO_ALGO_MODE_BITLOCKER)) {
-			EMSG("ICE: Invalid key/algo combination");
-			return TEE_ERROR_BAD_PARAMETERS;
-		}
-		capidx_val = 0x1;
-		break;
 	case 0x0:
 		if (!(config_data->key_len == ICE_CRYPTO_KEY_SIZE_128 &&
 		      config_data->alg_mode == ICE_CRYPTO_ALGO_MODE_AES_ECB)) {
@@ -332,15 +310,6 @@ static TEE_Result cmd_ice_set_hw_key_ctx(uint32_t param_types,
 		}
 		capidx_val = 0x2;
 		break;
-	case 0x5:
-		if (!(config_data->key_len == ICE_CRYPTO_KEY_SIZE_256 &&
-		      config_data->alg_mode ==
-		      ICE_CRYPTO_ALGO_MODE_BITLOCKER)) {
-			EMSG("ICE: Invalid key/algo combination");
-			return TEE_ERROR_BAD_PARAMETERS;
-		}
-		capidx_val = 0x4;
-		break;
 	case 0x1:
 		if (!(config_data->key_len == ICE_CRYPTO_KEY_SIZE_256 &&
 		      config_data->alg_mode == ICE_CRYPTO_ALGO_MODE_AES_ECB)) {
@@ -348,6 +317,17 @@ static TEE_Result cmd_ice_set_hw_key_ctx(uint32_t param_types,
 			return TEE_ERROR_BAD_PARAMETERS;
 		}
 		capidx_val = 0x5;
+		break;
+	case 0xF:
+		if (config_data->alg_mode == ICE_CRYPTO_ALGO_MODE_AES_XTS) {
+			if (config_data->key_len == ICE_CRYPTO_KEY_SIZE_128)
+				capidx_val = 0x0;
+			else
+				capidx_val = 0x3;
+		} else {
+			EMSG("ICE: Algorithm mode mismatch for algo_allowed 0xF");
+			return TEE_ERROR_BAD_PARAMETERS;
+		}
 		break;
 	default:
 		EMSG("ICE: Unsupported algorithm allowed value 0x%x",
@@ -391,11 +371,12 @@ static TEE_Result cmd_ice_set_hw_key_ctx(uint32_t param_types,
 			      config_data->index, i), 0, 0, 0xFFFFFFFF);
 	}
 
-	if (capidx_val == 0x0 || capidx_val == 0x3)
+	if (config_data->key_mode == ICE_CRYPTO_USE_KEY0_HW_KEY)
 		ice_reg_write(SDC1_SDCC_ICE_HWKEY0_CAPIDX_ADDR, 0, 0,
 			      capidx_val << 8);
-
-	ice_reg_write(SDC1_SDCC_ICE_HWKEY1_CAPIDX_ADDR, 0, 0, capidx_val << 8);
+	else
+		ice_reg_write(SDC1_SDCC_ICE_HWKEY1_CAPIDX_ADDR, 0, 0,
+			      capidx_val << 8);
 
 	return TEE_SUCCESS;
 }
@@ -453,8 +434,7 @@ static TEE_Result cmd_ice_generate_hw_key(uint32_t param_types,
 		}
 
 		if (alg_mode != ICE_CRYPTO_ALGO_MODE_AES_ECB &&
-		    alg_mode != ICE_CRYPTO_ALGO_MODE_AES_XTS &&
-		    alg_mode != ICE_CRYPTO_ALGO_MODE_BITLOCKER) {
+		    alg_mode != ICE_CRYPTO_ALGO_MODE_AES_XTS) {
 			EMSG("ICE: Invalid algorithm mode");
 			return TEE_ERROR_BAD_PARAMETERS;
 		}
