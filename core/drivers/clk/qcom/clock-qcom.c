@@ -22,6 +22,9 @@
 #include "cdsp.h"
 #endif
 
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, GCC_BASE,
+			GCC_SIZE);
+
 #if defined(PLATFORM_FLAVOR_ipq96xx) || defined(PLATFORM_FLAVOR_ipq96xx_lm)
 /* GCC (Global Clock Controller) Register Offsets for CDSP */
 /* GCC Clock Branch Control Register offsets */

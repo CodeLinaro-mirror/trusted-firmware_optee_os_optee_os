@@ -10,16 +10,36 @@
 #include "cdsp.h"
 #include <initcall.h>
 #include <io.h>
-#include <kernel/dt.h>
 #include <kernel/panic.h>
 #include <kernel/delay.h>
-#include <libfdt.h>
 #include <mm/core_memprot.h>
 #include <mm/core_mmu.h>
 #include <platform_config.h>
 #include <string.h>
 #include <trace.h>
 #include <util.h>
+
+#define MPM2_MPM_BASE			0x004A0000
+#define MPM2_MPM_SIZE			0x10000
+#define CDSP_TURING_CC_BASE		0x26008000
+#define CDSP_TURING_CC_SIZE		0x14000
+#define CDSP_TURING_TCSR_BASE		0x26080000
+#define CDSP_TURING_TCSR_SIZE		0x1F000
+#define CDSP_TURING_QDSP6SS_BASE	0x26300000
+#define CDSP_TURING_QDSP6SS_SIZE	0x100000
+
+static_assert(TCSR_BASE != 0);
+#define CDSP_TCSR_BASE			(TCSR_BASE + 0x66000)
+#define CDSP_TCSR_SIZE			0x1000
+
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, MPM2_MPM_BASE,
+			MPM2_MPM_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, CDSP_TURING_CC_BASE,
+			CDSP_TURING_CC_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, CDSP_TURING_TCSR_BASE,
+			CDSP_TURING_TCSR_SIZE);
+register_phys_mem_pgdir(MEM_AREA_IO_SEC, CDSP_TURING_QDSP6SS_BASE,
+			CDSP_TURING_QDSP6SS_SIZE);
 
 /* GCC reset control registers */
 #define GCC_RST_CTL_COMPUTESS_RESTART		0x47020
@@ -175,98 +195,61 @@ TEE_Result cdsp_start(struct qcom_pas_data *rproc)
 	return TEE_SUCCESS;
 }
 
-/* Map named DT register region to secure virtual memory */
-static TEE_Result map_hw_region(const void *fdt, int node, const char *reg_name,
-				struct io_pa_va *region)
-{
-	paddr_t pbase = 0;
-	size_t size = 0;
-	void *mapping = NULL;
-
-	if (fdt_get_reg_props_by_name(fdt, node, reg_name, &pbase, &size)) {
-		EMSG("Failed to get %s from DTS", reg_name);
-		return TEE_ERROR_GENERIC;
-	}
-
-	if (!pbase || !size) {
-		EMSG("Invalid %s region: PA=0x%"PRIxPA" size=0x%zx",
-		     reg_name, pbase, size);
-		return TEE_ERROR_BAD_PARAMETERS;
-	}
-
-	mapping = core_mmu_add_mapping(MEM_AREA_IO_SEC, pbase, size);
-	if (!mapping) {
-		EMSG("Failed to map %s at PA=0x%"PRIxPA, reg_name, pbase);
-		return TEE_ERROR_GENERIC;
-	}
-
-	region->va = core_mmu_get_va(pbase, MEM_AREA_IO_SEC, size);
-	if (!region->va) {
-		EMSG("Failed to get %s virtual address", reg_name);
-		core_mmu_remove_mapping(MEM_AREA_IO_SEC, mapping, size);
-		return TEE_ERROR_GENERIC;
-	}
-
-	region->pa = pbase;
-	DMSG("Mapped %s: PA=0x%"PRIxPA" VA=0x%"PRIxVA" size=0x%zx",
-	     reg_name, pbase, region->va, size);
-
-	return TEE_SUCCESS;
-}
-
-/* Initialize CDSP hardware by parsing DT and mapping register regions */
+/* Initialize CDSP hardware using statically registered register regions */
 static TEE_Result qcom_cdsp_init(void)
 {
-	TEE_Result res = TEE_ERROR_GENERIC;
-	const void *fdt = NULL;
-	int node = -1;
-
 	if (cdsp_hw.initialized)
 		return TEE_SUCCESS;
 
-	fdt = get_dt();
-	if (!fdt) {
-		EMSG("Failed to get device tree");
+	cdsp_hw.mpm2_mpm.va = (vaddr_t)phys_to_virt(MPM2_MPM_BASE,
+						     MEM_AREA_IO_SEC,
+						     MPM2_MPM_SIZE);
+	if (!cdsp_hw.mpm2_mpm.va) {
+		EMSG("Failed to map mpm2_mpm");
 		return TEE_ERROR_GENERIC;
 	}
 
-	/* Locate CDSP remoteproc node (absence not an error) */
-	node = fdt_node_offset_by_compatible(fdt, -1, "qcom,remoteproc-cdsp");
-	if (node < 0) {
-		DMSG("CDSP node not found in device tree (error: %d)", node);
-		return TEE_SUCCESS;
+	cdsp_hw.turing_cc.va = (vaddr_t)phys_to_virt(CDSP_TURING_CC_BASE,
+						      MEM_AREA_IO_SEC,
+						      CDSP_TURING_CC_SIZE);
+	if (!cdsp_hw.turing_cc.va) {
+		EMSG("Failed to map turing_cc");
+		return TEE_ERROR_GENERIC;
 	}
 
-	DMSG("Found CDSP node at offset %d, initializing hardware resources",
-	     node);
+	cdsp_hw.turing_tcsr.va = (vaddr_t)phys_to_virt(CDSP_TURING_TCSR_BASE,
+							MEM_AREA_IO_SEC,
+							CDSP_TURING_TCSR_SIZE);
+	if (!cdsp_hw.turing_tcsr.va) {
+		EMSG("Failed to map turing_tcsr");
+		return TEE_ERROR_GENERIC;
+	}
 
-	res = map_hw_region(fdt, node, "mpm2_mpm", &cdsp_hw.mpm2_mpm);
-	if (res)
-		return res;
+	cdsp_hw.turing_qdsp6ss.va = (vaddr_t)phys_to_virt(CDSP_TURING_QDSP6SS_BASE,
+							   MEM_AREA_IO_SEC,
+							   CDSP_TURING_QDSP6SS_SIZE);
+	if (!cdsp_hw.turing_qdsp6ss.va) {
+		EMSG("Failed to map turing_qdsp6ss");
+		return TEE_ERROR_GENERIC;
+	}
 
-	res = map_hw_region(fdt, node, "turing_cc", &cdsp_hw.turing_cc);
-	if (res)
-		return res;
+	cdsp_hw.tcsr.va = (vaddr_t)phys_to_virt(CDSP_TCSR_BASE,
+						 MEM_AREA_IO_SEC,
+						 CDSP_TCSR_SIZE);
+	if (!cdsp_hw.tcsr.va) {
+		EMSG("Failed to map tcsr");
+		return TEE_ERROR_GENERIC;
+	}
 
-	res = map_hw_region(fdt, node, "turing_tcsr", &cdsp_hw.turing_tcsr);
-	if (res)
-		return res;
-
-	res = map_hw_region(fdt, node, "turing_qdsp6v81ss",
-			    &cdsp_hw.turing_qdsp6ss);
-	if (res)
-		return res;
-
-	res = map_hw_region(fdt, node, "tcsr", &cdsp_hw.tcsr);
-	if (res)
-		return res;
-
-	res = map_hw_region(fdt, node, "gcc", &cdsp_hw.gcc);
-	if (res)
-		return res;
+	cdsp_hw.gcc.va = (vaddr_t)phys_to_virt(GCC_BASE,
+						MEM_AREA_IO_SEC,
+						GCC_SIZE);
+	if (!cdsp_hw.gcc.va) {
+		EMSG("Failed to map gcc");
+		return TEE_ERROR_GENERIC;
+	}
 
 	cdsp_hw.initialized = true;
-
 	return TEE_SUCCESS;
 }
 

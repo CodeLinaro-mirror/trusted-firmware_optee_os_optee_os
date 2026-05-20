@@ -26,6 +26,11 @@
 #define QCOM_EL3_INTR_DELEGATION_SVC_ID	0x02001D03
 #endif
 
+#if defined(CFG_DRIVERS_QCOM_CLK)
+#define GCC_BASE			0x01800000
+#define GCC_SIZE			0x40000
+#endif
+
 #if defined(CFG_QCOM_GENI_UART)
 #define GENI_UART_REG_BASE		CFG_GENI_UART_BASE
 #endif
