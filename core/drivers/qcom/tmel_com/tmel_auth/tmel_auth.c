@@ -47,11 +47,22 @@ TEE_Result tmel_secure_auth_v1(struct tmel_sec_auth_v1_req *params)
 
 	dcache_inv_range(params, params_len);
 
-	if (res != TEE_SUCCESS ||
-	    params->status != TMECOM_RSP_SUCCESS ||
-	    params->extended_error) {
-		EMSG("TME-L auth failed: %#"PRIx32"/%#"PRIx32"/%#"PRIx32,
-		     res, params->status, params->extended_error);
+	if (res != TEE_SUCCESS) {
+		EMSG("TME-L auth v1 IPC failed: %#"PRIx32, res);
+		return res;
+	}
+
+	/* Check TME service response status */
+	res = tme_status_to_tee_result(params->status);
+	if (res != TEE_SUCCESS) {
+		EMSG("TME-L auth v1 failed: status=%#"PRIx32" ext_err=%#"PRIx32,
+		     params->status, params->extended_error);
+		return res;
+	}
+
+	if (params->extended_error) {
+		EMSG("TME-L auth v1 failed: ext_err=%#"PRIx32,
+		     params->extended_error);
 		return TEE_ERROR_GENERIC;
 	}
 
@@ -92,11 +103,22 @@ TEE_Result tmel_secure_auth_v2(struct tmel_sec_auth_v2_req *params)
 
 	dcache_inv_range(params, params_len);
 
-	if (res != TEE_SUCCESS ||
-	    params->status != TMECOM_RSP_SUCCESS ||
-	    params->extended_error) {
-		EMSG("TME-L auth failed: %#"PRIx32"/%#"PRIx32"/%#"PRIx32,
-		     res, params->status, params->extended_error);
+	if (res != TEE_SUCCESS) {
+		EMSG("TME-L auth v2 IPC failed: %#"PRIx32, res);
+		return res;
+	}
+
+	/* Check TME service response status */
+	res = tme_status_to_tee_result(params->status);
+	if (res != TEE_SUCCESS) {
+		EMSG("TME-L auth v2 failed: status=%#"PRIx32" ext_err=%#"PRIx32,
+		     params->status, params->extended_error);
+		return res;
+	}
+
+	if (params->extended_error) {
+		EMSG("TME-L auth v2 failed: ext_err=%#"PRIx32,
+		     params->extended_error);
 		return TEE_ERROR_GENERIC;
 	}
 

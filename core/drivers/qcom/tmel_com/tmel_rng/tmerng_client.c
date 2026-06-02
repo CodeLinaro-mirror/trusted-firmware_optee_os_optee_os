@@ -58,23 +58,6 @@ static TEE_Result get_bootloader_rng_pool(void *buf, size_t len)
 	return TEE_SUCCESS;
 }
 
-/* TME Status codes */
-#define TME_STATUS_SUCCESS		0
-#define TME_STATUS_INVALID_INPUT	2
-#define TME_STATUS_UNKNOWN		0xFFFFFFFF
-
-static TEE_Result tme_status_to_tee_result(uint32_t tme_status)
-{
-	switch (tme_status) {
-	case TME_STATUS_SUCCESS:
-		return TEE_SUCCESS;
-	case TME_STATUS_INVALID_INPUT:
-		return TEE_ERROR_BAD_PARAMETERS;
-	default:
-		return TEE_ERROR_GENERIC;
-	}
-}
-
 static TEE_Result tme_rng_get_data(void *buf, size_t len)
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;

@@ -17,23 +17,6 @@
 #include "tmecom_client.h"
 #include "tmemessages_uids.h"
 
-/* TME Status codes */
-#define TME_STATUS_SUCCESS		0
-#define TME_STATUS_INVALID_INPUT	2
-#define TME_STATUS_UNKNOWN		0xFFFFFFFF
-
-static TEE_Result tme_status_to_tee_result(uint32_t tme_status)
-{
-	switch (tme_status) {
-	case TME_STATUS_SUCCESS:
-		return TEE_SUCCESS;
-	case TME_STATUS_INVALID_INPUT:
-		return TEE_ERROR_BAD_PARAMETERS;
-	default:
-		return TEE_ERROR_GENERIC;
-	}
-}
-
 TEE_Result tme_km_derive_key(const struct tme_kdf_spec *kdf_spec,
 			     tme_key_handle_t *key_handle)
 {

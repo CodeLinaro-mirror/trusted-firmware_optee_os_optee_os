@@ -16,6 +16,13 @@
  */
 #define TMECOM_DEFAULT_TIMEOUT 1000000
 
+/*
+ * TME Status codes returned in message response fields
+ */
+#define TME_STATUS_SUCCESS		0
+#define TME_STATUS_INVALID_INPUT	2
+#define TME_STATUS_UNKNOWN		0xFFFFFFFF
+
 /* Generic TME-L buffer descriptor */
 struct tmel_buf_desc {
 	uint32_t buf;
@@ -120,6 +127,11 @@ void tmecom_client_free_coherent(void *coherent_addr, void *orig_addr,
  * Convert TMECOM response code to TEE Result
  */
 TEE_Result tmecom_to_tee_result(enum tmecom_response status);
+
+/*
+ * Convert TME service status code to TEE Result
+ */
+TEE_Result tme_status_to_tee_result(uint32_t tme_status);
 
 /*
  * Check if TMEL is bypassed

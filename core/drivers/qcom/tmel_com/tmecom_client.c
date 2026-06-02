@@ -330,6 +330,22 @@ bool tmecom_is_tmel_bypassed(void)
 }
 
 /*
+ * Converts TME service status code to TEE result code.
+ * Maps TME message response status fields to standard TEE API error codes.
+ */
+TEE_Result tme_status_to_tee_result(uint32_t tme_status)
+{
+	switch (tme_status) {
+	case TME_STATUS_SUCCESS:
+		return TEE_SUCCESS;
+	case TME_STATUS_INVALID_INPUT:
+		return TEE_ERROR_BAD_PARAMETERS;
+	default:
+		return TEE_ERROR_GENERIC;
+	}
+}
+
+/*
  * Check if TME server is connected and ready for communication.
  * Validates link state, channel handle, and connection status.
  */

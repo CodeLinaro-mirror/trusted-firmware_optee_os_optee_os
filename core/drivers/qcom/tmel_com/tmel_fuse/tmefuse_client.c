@@ -18,11 +18,16 @@ TEE_Result tmel_fuse_read_multiple_rows(struct tme_fuse_payload *fuse,
 {
 	TEE_Result ret = TEE_ERROR_GENERIC;
 	struct tme_fuse_read_multiple_msg msg = { };
-	paddr_t fuse_paddr = virt_to_phys(fuse);
+	paddr_t fuse_paddr = 0;
 
-	if (!fuse || !size || !fuse_paddr)
+	if (!fuse || !size)
 		return TEE_ERROR_BAD_PARAMETERS;
 
+	fuse_paddr = virt_to_phys(fuse);
+	if (!fuse_paddr)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	msg.status = TME_STATUS_UNKNOWN;
 	msg.fuse_read_data.p_buffer = (uint32_t)fuse_paddr;
 	msg.fuse_read_data.buf_len = size;
 	msg.fuse_read_data.buf_out_len = 0;
@@ -38,6 +43,17 @@ TEE_Result tmel_fuse_read_multiple_rows(struct tme_fuse_payload *fuse,
 			 NULL,
 			 NULL,
 			 NULL);
+
+	if (ret != TEE_SUCCESS) {
+		EMSG("TME fuse read multiple rows message failed: 0x%x", ret);
+		return ret;
+	}
+
+	/* Check TME response status */
+	ret = tme_status_to_tee_result(msg.status);
+	if (ret != TEE_SUCCESS)
+		EMSG("TME fuse read multiple rows failed, status: 0x%x",
+		     msg.status);
 
 	return ret;
 }
@@ -59,6 +75,7 @@ TEE_Result tmel_fuse_write_row(struct tme_fuse_payload *fuse,
 	if (!fuse || !size)
 		return TEE_ERROR_BAD_PARAMETERS;
 
+	msg.status = TME_STATUS_UNKNOWN;
 	msg.fuse_addr = fuse->fuse_addr;
 	msg.lsb_val = fuse->lsb_val;
 	msg.msb_val = fuse->msb_val;
@@ -74,6 +91,16 @@ TEE_Result tmel_fuse_write_row(struct tme_fuse_payload *fuse,
 			 NULL,
 			 NULL,
 			 NULL);
+
+	if (ret != TEE_SUCCESS) {
+		EMSG("TME fuse write row message failed: 0x%x", ret);
+		return ret;
+	}
+
+	/* Check TME response status */
+	ret = tme_status_to_tee_result(msg.status);
+	if (ret != TEE_SUCCESS)
+		EMSG("TME fuse write row failed, status: 0x%x", msg.status);
 
 	return ret;
 }
@@ -93,7 +120,7 @@ TEE_Result tmel_oem_mrc_state_update(uint32_t activate_vector,
 
 	msg.activate_vector = activate_vector;
 	msg.revocate_vector = revocate_vector;
-	msg.status = TEE_SUCCESS;
+	msg.status = TME_STATUS_UNKNOWN;
 
 	/* Send MRC state update request to TME */
 	ret = tmecom_client_send_message
@@ -106,6 +133,17 @@ TEE_Result tmel_oem_mrc_state_update(uint32_t activate_vector,
 			 NULL,
 			 NULL,
 			 NULL);
+
+	if (ret != TEE_SUCCESS) {
+		EMSG("TME OEM MRC state update message failed: 0x%x", ret);
+		return ret;
+	}
+
+	/* Check TME response status */
+	ret = tme_status_to_tee_result(msg.status);
+	if (ret != TEE_SUCCESS)
+		EMSG("TME OEM MRC state update failed, status: 0x%x",
+		     msg.status);
 
 	return ret;
 }
@@ -134,6 +172,7 @@ TEE_Result tmel_fuse_write_multiple_rows(struct tme_fuse_payload *fuse,
 	if (!fuse_paddr)
 		return TEE_ERROR_BAD_PARAMETERS;
 
+	msg.status = TME_STATUS_UNKNOWN;
 	msg.p_buffer = (uint32_t)fuse_paddr;
 	msg.buf_len = buffer_size;
 
@@ -148,6 +187,17 @@ TEE_Result tmel_fuse_write_multiple_rows(struct tme_fuse_payload *fuse,
 			 NULL,
 			 NULL,
 			 NULL);
+
+	if (ret != TEE_SUCCESS) {
+		EMSG("TME fuse write multiple rows message failed: 0x%x", ret);
+		return ret;
+	}
+
+	/* Check TME response status */
+	ret = tme_status_to_tee_result(msg.status);
+	if (ret != TEE_SUCCESS)
+		EMSG("TME fuse write multiple rows failed, status: 0x%x",
+		     msg.status);
 
 	return ret;
 }
