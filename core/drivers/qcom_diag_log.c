@@ -3,12 +3,12 @@
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
+#include <drivers/qcom/ac_xpuv4.h>
 #include <drivers/qcom_diag_log.h>
 #include <io.h>
 #include <kernel/misc.h>
 #include <kernel/thread.h>
 #include <mm/core_memprot.h>
-#include <mm/core_mmu.h>
 #include <platform_config.h>
 #include <string.h>
 #include <trace.h>
@@ -73,6 +73,14 @@ void qcom_diag_log_init(void)
 		.va = 0,
 	};
 	uint32_t *diag_info_addr;
+	TEE_Result res = TEE_SUCCESS;
+
+	res = ac_xpu_protect_region(IMEM_MPU_BASE, AC_XPU_IMEM_MPU_MAP_SIZE,
+				    IMEM_XPU_LOG_RG, IMEM_BASE,
+				    DIAG_BASE, DIAG_SIZE,
+				    IMEM_XPU_LOG_READ_QAD, AC_QAD_APPS_SEC);
+	if (res)
+		EMSG("DIAG LOG: XPU protection failed: %#" PRIx32, res);
 
 	diag = get_diag_region();
 	if (!diag)

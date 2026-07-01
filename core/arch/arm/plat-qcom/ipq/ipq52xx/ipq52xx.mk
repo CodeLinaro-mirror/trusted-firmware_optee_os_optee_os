@@ -2,6 +2,17 @@ ifneq (,$(filter $(PLATFORM_FLAVOR),$(ipq52xx-flavorlist)))
 
 CFG_IPQ52XX ?= y
 
+# DDR MPU XPU protection for TZDRAM
+CFG_QCOM_XPUV4 ?= y
+CFG_DDR_MPU_BASE ?= 0xAC0000
+CFG_DDR_XPU_TZDRAM_RG ?= 10
+CFG_DDR_MPU_ADDR_OFFSET ?= 0x80000000
+
+# IMEM MPU XPU protection for the OP-TEE DIAG log buffer.
+CFG_IMEM_MPU_BASE ?= 0x54000
+CFG_IMEM_XPU_LOG_RG ?= 10
+CFG_IMEM_XPU_LOG_READ_QAD ?= 0xC000000B
+
 # Hardware configuration
 # 4 cores (4 Cortex-A53) in a single cluster
 CFG_TEE_CORE_NB_CORE ?= 4
