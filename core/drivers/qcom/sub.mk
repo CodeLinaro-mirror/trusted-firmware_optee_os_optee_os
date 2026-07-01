@@ -9,3 +9,6 @@ subdirs-$(CFG_QCOM_HUK) += qcom_huk
 
 # QFPROM driver
 subdirs-$(CFG_QCOM_QFPROM) += qfprom
+
+# DDR MPU XPU protection for TZDRAM
+subdirs-$(CFG_QCOM_XPUV4) += xpu
