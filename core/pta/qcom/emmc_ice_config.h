@@ -46,9 +46,17 @@
 #define ICE_MAX_KEY_IDX				32
 #define ICE_CRYPTOCFG_DATA_REGS			16
 
-#define EMMC_CE					20
-#define UFS_CE					10
-#define UFS_CARD_CE				30
+/* Key sizes in bytes */
+#define ICE_AES128_KEY_SIZE			16
+#define ICE_AES256_KEY_SIZE			32
+
+/* ICE key register layout within a slot:
+ *   n = 0..7  : DATA key (32 bytes, 8 x 4-byte registers)
+ *   n = 8..15 : SALT key (32 bytes, 8 x 4-byte registers)
+ */
+#define ICE_KEY_REG_SIZE			32
+#define ICE_KEY_DATA_REG_START			0
+#define ICE_KEY_SALT_REG_START			8
 
 #define ICE_CRYPTO_KEY_SIZE_128			0x0
 #define ICE_CRYPTO_KEY_SIZE_256			0x2
@@ -59,10 +67,8 @@
 
 #define ICE_CRYPTO_USE_KEY0_HW_KEY		0x0
 #define ICE_CRYPTO_USE_KEY1_HW_KEY		0x1
-#define ICE_CRYPTO_USE_LUT_SW_KEY		0x3
 
 #define BYPASS_DISABLE				0x0
-#define BYPASS_ENABLE				0x1
 
 #define ICE_CRYPTO_CRBK_TYPE			0x0
 #define ICE_CRYPTO_OEMPRODSEED_TYPE		0x1
@@ -106,10 +112,5 @@ typedef struct {
 	uint8_t key_size;
 	uint8_t algo_mode;
 } __packed ice_context_config;
-
-typedef enum {
-	CIPHER_ALGO_AES_128 = 0,
-	CIPHER_ALGO_AES_256 = 1
-} cipher_algo_et;
 
 #endif /* __ICE_CONFIG_H */
