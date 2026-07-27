@@ -25,7 +25,6 @@
 register_phys_mem_pgdir(MEM_AREA_IO_SEC, GCC_BASE,
 			GCC_SIZE);
 
-#if defined(PLATFORM_FLAVOR_ipq96xx) || defined(PLATFORM_FLAVOR_ipq96xx_lm)
 /* GCC (Global Clock Controller) Register Offsets for CDSP */
 /* GCC Clock Branch Control Register offsets */
 #define GCC_Q6SS_TSCTR_1TO2_CLK_CBCR		0x1801c
@@ -87,9 +86,6 @@ register_phys_mem_pgdir(MEM_AREA_IO_SEC, GCC_BASE,
 
 /* CDSPAUX register offsets */
 #define CDSPAUX_BUS_BRIDGE_HALT                 0x10010
-#else
-#error "Platform specific clock offsets not defined..."
-#endif
 
 /*
  * Enable GCC clocks by writing directly to registers

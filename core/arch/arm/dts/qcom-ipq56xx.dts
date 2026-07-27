@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: ISC
+/*
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ */
+
+/dts-v1/;
+
+/ {
+	compatible = "qcom,ipq56xx";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	/* TME Authentication */
+	tme_auth: tme-auth {
+		compatible = "qcom,tme-auth";
+		qcom,tme-auth-version = <2>; /* TME auth V2 for IPQ56xx */
+		status = "okay";
+	};
+};
+
