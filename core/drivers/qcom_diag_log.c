@@ -73,6 +73,7 @@ void qcom_diag_log_init(void)
 		.va = 0,
 	};
 	uint32_t *diag_info_addr;
+#if defined(CFG_QCOM_XPUV4)
 	TEE_Result res = TEE_SUCCESS;
 
 	res = ac_xpu_protect_region(IMEM_MPU_BASE, AC_XPU_IMEM_MPU_MAP_SIZE,
@@ -81,7 +82,7 @@ void qcom_diag_log_init(void)
 				    IMEM_XPU_LOG_READ_QAD, AC_QAD_APPS_SEC);
 	if (res)
 		EMSG("DIAG LOG: XPU protection failed: %#" PRIx32, res);
-
+#endif
 	diag = get_diag_region();
 	if (!diag)
 		return;
