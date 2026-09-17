@@ -19,3 +19,6 @@ CFG_CORE_ARM64_PA_BITS ?= 36
 
 # TME Key Management depends on TME IPC support
 $(eval $(call cfg-depends-all,CFG_QCOM_TMEL_KM,CFG_QCOM_TMEL_COM))
+
+# NAND seed selection requires the Qualcomm HUK derivation override.
+$(eval $(call cfg-depends-all,CFG_NAND_FS_ENC_PTA,CFG_QCOM_HUK))
