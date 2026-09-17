@@ -18,6 +18,10 @@
 #define TME_OEM_MRC_ACTIVATION_VECTOR_MASK		0xF
 #define TME_OEM_MRC_REVOCATION_VECTOR_MASK		0xF
 
+/* Hybrid PQC bits (row_data[1] bits 1:0) folded into the activation vector */
+#define TME_OEM_MRC_HYBRID_STATE_VECTOR_MASK		GENMASK_32(1, 0)
+#define TME_OEM_MRC_ACTIVATION_HYBRID_SHIFT		30
+
 /* QFPROM RAW region addresses for FEC-enabled ranges */
 #define HWIO_QFPROM_RAW_TME_OEM_MRC_HASH_ROW0_LSB_ADDR	0x000A00F8
 #define HWIO_QFPROM_RAW_TME_OEM_MRC_HASH_ROW9_LSB_ADDR	0x000A0140

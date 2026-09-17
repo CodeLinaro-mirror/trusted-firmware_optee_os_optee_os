@@ -137,6 +137,10 @@ TEE_Result qfprom_write_tme_oem_mrc(uint32_t *row_data)
 	rev_vector = (row_data[0] >> TME_OEM_MRC_ACTIVATION_VECTOR_BITS) &
 		     TME_OEM_MRC_REVOCATION_VECTOR_MASK;
 
+	/* Fold the hybrid PQC bits into the activation vector's top bits */
+	act_vector |= (row_data[1] & TME_OEM_MRC_HYBRID_STATE_VECTOR_MASK) <<
+		      TME_OEM_MRC_ACTIVATION_HYBRID_SHIFT;
+
 	res = tmel_oem_mrc_state_update(act_vector, rev_vector);
 	if (res != TEE_SUCCESS) {
 		EMSG("TME MRC state update failed: %#"PRIx32, res);
