@@ -18,6 +18,14 @@
 #define TME_OEM_MRC_ACTIVATION_VECTOR_MASK		0xF
 #define TME_OEM_MRC_REVOCATION_VECTOR_MASK		0xF
 
+/*
+ * Hybrid PQC is not supported on this platform; this stub
+ * mirrors downstream-only code just to let Marina build and
+ * keeps the fold a no-op. Not intended to be upstreamed.
+ */
+#define TME_OEM_MRC_HYBRID_STATE_VECTOR_MASK		0x0
+#define TME_OEM_MRC_ACTIVATION_HYBRID_SHIFT		0
+
 /* QFPROM RAW region addresses for FEC-enabled ranges */
 #define HWIO_QFPROM_RAW_TME_OEM_MRC_HASH_ROW0_LSB_ADDR	0x000A00F8
 #define HWIO_QFPROM_RAW_TME_OEM_MRC_HASH_ROW9_LSB_ADDR	0x000A0140
