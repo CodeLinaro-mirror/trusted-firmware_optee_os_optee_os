@@ -494,12 +494,17 @@ static TEE_Result cmd_ice_set_config_key(uint32_t param_types,
 	/* Disable the slot so ICE can't use stale key data during reconfig */
 	ice_reg_write(SDC1_SDCC_ICE_CRYPTOCFG_r_16_ADDR(index), 0, 0, 0x0);
 
+	/* Configure CRYPTOCFG_r_16 (mode/data-unit/enable) before key data */
+	ice_configure_slot(index, cap_index, data_unit_size);
+
 	/*
-	 * Security wipe: overwrite all 16 registers with random data. Leave
-	 * the slot disabled and bail out without programming a key if the
-	 * RNG can't be read.
+	 * Security wipe: overwrite all 16 registers with random data. Disable
+	 * the slot again and bail out without programming a key if the RNG
+	 * can't be read.
 	 */
 	if (ice_wipe_key_regs(index) != TEE_SUCCESS) {
+		ice_reg_write(SDC1_SDCC_ICE_CRYPTOCFG_r_16_ADDR(index),
+			      0, 0, 0x0);
 		res = TEE_ERROR_BAD_STATE;
 		goto out;
 	}
@@ -519,13 +524,6 @@ static TEE_Result cmd_ice_set_config_key(uint32_t param_types,
 		/* No salt/tweak for CBC modes; zero that half instead */
 		ice_write_key_to_regs(index, ICE_KEY_SALT_REG_START,
 				      NULL, 0, 0x0);
-
-	/*
-	 * Configure CRYPTOCFG_r_16 (mode/data-unit) and set CFGE only after
-	 * the full key configuration has been written, so the slot is never
-	 * enabled over stale, wiped, or partially-programmed key data.
-	 */
-	ice_configure_slot(index, cap_index, data_unit_size);
 	dsb();
 
 	res = TEE_SUCCESS;
